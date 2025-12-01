@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: trendlensAPI
+
+  # include할 파일 명시
+  config:
+    import: "classpath:secret.yaml"
+
+  # JPA 설정
+  jpa:
+    database: oracle
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl #자동 캐멀 표기법 사용하지 않음
+    show-sql: true #콘솔로그에 SQL 출력(log4jdbc와 비슷한 기능)
+    properties:
+      hibernate:
+        format_sql: true #SQL 포맷팅
+        highlight_sql: true #SQL 색깔 추가
+
+  # jwt 설정
+  jwt:
+    access-token-expiration: 900000     #15분
+    refresh-token-expiration: 604800000 #7일
+
+
+#로그
+logging:
+  level:
+    org:
+      hibernate:
+        sql: debug
+        orm:
+          jdbc:
+            bind: trace
+
+# 서버 포트 설정(8080)
+server:
+  port: 8080
+  servlet:
+    context-path: /trend
