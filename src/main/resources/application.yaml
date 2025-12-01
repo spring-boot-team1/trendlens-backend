@@ -40,3 +40,8 @@ server:
   port: 8080
   servlet:
     context-path: /trend
+
+# Swagger 세팅
+springdoc:
+  api-docs:
+    enabled: true
