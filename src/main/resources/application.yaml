@@ -1,6 +1,6 @@
 spring:
   application:
-    name: trendlensAPI
+    name: trend
 
   # include할 파일 명시
   config:
