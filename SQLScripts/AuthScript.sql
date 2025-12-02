@@ -1,6 +1,6 @@
 -- Account 테이블
 -- DROP TABLE Account;
-
+-- DROP SEQUENCE seqAccount;
 CREATE TABLE Account (
     seqAccount	    NUMBER(19)	        NOT NULL,
     email	        VARCHAR2(100)		NOT NULL,
@@ -10,10 +10,13 @@ CREATE TABLE Account (
     providerId	    VARCHAR2(100)		NULL
 );
 
+CREATE SEQUENCE seqAccount;
+
 ALTER TABLE Account ADD CONSTRAINT "PK_Account" PRIMARY KEY (seqAccount);
 
 -- AccountDetails 테이블
 -- DROP TABLE AccountDetails;
+-- DROP SEQUENCE seqAccountDetail
 
 CREATE TABLE AccountDetails (
     seqAccountDetail	NUMBER(19)		NOT NULL,
@@ -24,6 +27,8 @@ CREATE TABLE AccountDetails (
     birthday	        TIMESTAMP		NULL,
     profilepic	        VARCHAR2(200)	NULL
 );
+
+CREATE SEQUENCE seqAccountDetail;
 
 ALTER TABLE AccountDetails ADD CONSTRAINT "PK_AccountDETAILS"
 PRIMARY KEY (seqAccountDetail);
