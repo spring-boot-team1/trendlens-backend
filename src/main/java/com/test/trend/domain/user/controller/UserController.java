@@ -1,8 +1,11 @@
 package com.test.trend.domain.user.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.test.trend.domain.user.dto.RegisterRequestDTO;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 public class UserController {
@@ -13,8 +16,9 @@ public class UserController {
     }
 
     @PostMapping("/api/v1/register")
-    public String register() {
-        return "UserController >>>>> /register";
+    public ResponseEntity<?> register(@Valid @RequestPart("dto")RegisterRequestDTO dto, @RequestPart(value = "profilepic", required = false)MultipartFile image) {
+
+        return null; //결과(HTTPSTATUS)
     }
 
 }
