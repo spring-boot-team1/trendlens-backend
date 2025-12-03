@@ -40,14 +40,4 @@ public class Account {
     @OneToOne(mappedBy = "account")
     private AccountDetail accountDetail;
 
-    //builder(DTO로 변환)
-    public AccountDTO toDTO(){
-        return AccountDTO.builder()
-                .seqAccount(this.seqAccount)
-                .email(this.email)
-                .role(this.role)
-                .provider(this.provider)
-                .providerId(this.providerId)
-                .build();
-    }
 }

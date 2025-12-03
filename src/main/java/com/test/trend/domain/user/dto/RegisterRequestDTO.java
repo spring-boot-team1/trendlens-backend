@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 /**
- * 회원 가입 요청 시 사용하는 DTO(사용자 입력 데이터)
+ * 회원 가입 요청 시 사용하는 DTO(사용자 입력 데이터), Request용 DTO
  */
 @Getter
 @Setter

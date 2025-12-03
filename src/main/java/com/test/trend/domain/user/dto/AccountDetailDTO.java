@@ -4,6 +4,9 @@ import com.test.trend.domain.user.entity.Account;
 import com.test.trend.domain.user.entity.AccountDetail;
 import lombok.*;
 
+/**
+ * 클라이언트에게 전송할 때 사용하는 DTO(출력용..)
+ */
 @Getter
 @Setter
 @ToString

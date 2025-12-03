@@ -4,6 +4,9 @@ import com.test.trend.domain.user.entity.Account;
 import com.test.trend.enums.Role;
 import lombok.*;
 
+/**
+ * 클라이언트에게 전송하기 위한 DTO(출력용)
+ */
 @Getter
 @Setter
 @ToString
@@ -13,19 +16,9 @@ import lombok.*;
 public class AccountDTO {
     private Long seqAccount;
     private String email;
-    private String password;
+//    private String password; //출력용이기때문에 비밀번호는 불필요함
     private Role role;
     private String provider;
     private String providerId;
 
-    //builder(엔티티로 변환)
-    public Account toEntity() {
-        return Account.builder()
-                .email(this.email)
-                .password(this.password)
-                .role(this.role)
-                .provider(this.provider)
-                .providerId(this.providerId)
-                .build();
-    }
 }
