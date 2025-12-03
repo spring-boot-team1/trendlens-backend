@@ -25,6 +25,18 @@ spring:
     access-token-expiration: 900000     #15분
     refresh-token-expiration: 604800000 #7일
 
+  #첨부 파일 설정
+  servlet:
+    multipart:
+      enabled: true #multipart 업로드 활성화
+      max-file-size: 10MB #업로드 가능한 개별 파일 최대 용량
+      max-request-size: 20MB #요청 전체 크기(파일 여러 개일 경우)
+
+
+#파일 업로드 경로 설정(나중에 AWS S3로 교체 예정)
+file:
+  upload-dir: C:/code/temp
+
 #Mybatis 설정
 #mybatis:
   #mapper-locations: classpath*:mapper/**/*.xml
@@ -34,8 +46,6 @@ spring:
 mybatis:
   config-location: classpath:config/mybatis-config.xml
   mapper-locations: classpath:mapper/*.xml 
-
-
 
 #로그
 logging:
