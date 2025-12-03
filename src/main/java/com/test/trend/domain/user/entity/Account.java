@@ -1,5 +1,6 @@
 package com.test.trend.domain.user.entity;
 
+import com.test.trend.domain.user.dto.AccountDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,18 +19,30 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqAccountGen")
     private Long seqAccount;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 100, unique = true)
     private String email;
 
-    @Column(nullable = true, length = 100)
+    @Column(length = 100)
     private String password;
 
     @Column(nullable = false, length = 50)
     private String role;
 
-    @Column(nullable = true, length = 50)
+    @Column(length = 50)
     private String provider;
 
-    @Column(nullable = true, length = 100)
+    @Column(length = 100)
     private String providerId;
+
+    //builder(DTO로 변환)
+    public AccountDTO toDTO(){
+        return AccountDTO.builder()
+                .seqAccount(this.seqAccount)
+                .email(this.email)
+                .password(this.password)
+                .role(this.role)
+                .provider(this.provider)
+                .providerId(this.providerId)
+                .build();
+    }
 }

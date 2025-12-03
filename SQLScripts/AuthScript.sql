@@ -1,37 +1,42 @@
 -- Account 테이블
 -- DROP TABLE Account;
 -- DROP SEQUENCE seqAccount;
+
+CREATE SEQUENCE seqAccount;
+
 CREATE TABLE Account (
-    seqAccount	    NUMBER(19)	        NOT NULL,
-    email	        VARCHAR2(100)		NOT NULL,
+    seqAccount	    NUMBER(19)	        NOT NULL, --PK
+    email	        VARCHAR2(100)		NOT NULL, --UNIQUE
     password	    VARCHAR2(100)		NULL,
     role	        VARCHAR2(50)	    DEFAULT 'ROLE_USER'	NOT NULL,
     provider	    VARCHAR2(50)		NULL,
     providerId	    VARCHAR2(100)		NULL
 );
 
-CREATE SEQUENCE seqAccount;
-
 ALTER TABLE Account ADD CONSTRAINT "PK_Account" PRIMARY KEY (seqAccount);
+ALTER TABLE Account ADD CONSTRAINT "UQ_Account" UNIQUE (email);
 
 -- AccountDetails 테이블
--- DROP TABLE AccountDetails;
+-- DROP TABLE AccountDetail;
 -- DROP SEQUENCE seqAccountDetail
-
-CREATE TABLE AccountDetails (
-    seqAccountDetail	NUMBER(19)		NOT NULL,
-    seqAccount	        NUMBER(19)		NOT NULL,
-    username	        VARCHAR2(50)	NULL,
-    nickname	        VARCHAR2(50)	NULL,
-    phonenum	        VARCHAR2(50)	NULL,
-    birthday	        TIMESTAMP		NULL,
-    profilepic	        VARCHAR2(200)	NULL
-);
 
 CREATE SEQUENCE seqAccountDetail;
 
-ALTER TABLE AccountDetails ADD CONSTRAINT "PK_AccountDETAILS"
-PRIMARY KEY (seqAccountDetail);
+CREATE TABLE AccountDetail (
+    seqAccountDetail	NUMBER(19)		NOT NULL, --PK
+    seqAccount	        NUMBER(19)		NOT NULL,
+    username	        VARCHAR2(50)	NULL, --사용자 이름(실명)
+    nickname	        VARCHAR2(50)	NULL, --사용자 닉네임
+    phonenum	        VARCHAR2(50)	NULL,
+    birthday	        DATE            NULL,
+    profilepic	        VARCHAR2(200)	NULL
+);
 
-ALTER TABLE AccountDetails ADD CONSTRAINT "FK_Account_TO_AccountDetails"
-FOREIGN KEY (seqAccount) REFERENCES Account (seqAccount);
+ALTER TABLE AccountDetail ADD CONSTRAINT "PK_AccountDETAIL" PRIMARY KEY (seqAccountDetail);
+
+ALTER TABLE AccountDetail ADD CONSTRAINT "FK_Account_TO_AccountDetail" FOREIGN KEY (seqAccount) REFERENCES Account (seqAccount);
+
+select * from Account;
+select * from AccountDetail;
+
+commit;
