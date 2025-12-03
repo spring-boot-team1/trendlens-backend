@@ -25,6 +25,17 @@ spring:
     access-token-expiration: 900000     #15분
     refresh-token-expiration: 604800000 #7일
 
+#Mybatis 설정
+#mybatis:
+  #mapper-locations: classpath*:mapper/**/*.xml
+  #type-aliases-package: com.test.trend.domain
+
+# Mybatis 설정 > 없음
+mybatis:
+  config-location: classpath:config/mybatis-config.xml
+  mapper-locations: classpath:mapper/*.xml 
+
+
 
 #로그
 logging:
