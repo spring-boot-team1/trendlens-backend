@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -16,6 +17,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+    
+    //OAuth2가 아닐 때 사용하기 위한 BCryptPasswordEncoder
+    @Bean
+    BCryptPasswordEncoder encoder() {
+        return new BCryptPasswordEncoder();
+    }
+    
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         //CORS 설정

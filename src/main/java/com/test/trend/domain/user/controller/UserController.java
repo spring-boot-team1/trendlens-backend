@@ -21,12 +21,18 @@ public class UserController {
         return "UserController >>>>> /login";
     }
 
+    /**
+     * 회원 가입 요청 처리
+     * @param dto 폼데이터(이미지 제외)
+     * @param image 프로필사진
+     * @return
+     */
     @PostMapping("/api/v1/register")
     public ResponseEntity<?> register(
             @Valid @RequestPart("dto")RegisterRequestDTO dto,
             @RequestPart(value = "profilepic", required = false) MultipartFile image) {
         System.out.println("UserController.register() >>>>> " + dto);
-        accountService.register(dto, image);
+        accountService.register(dto, image); //비즈니스 로직은 Service객체에 위임
         return null; //결과(HTTPSTATUS)
     }
 
