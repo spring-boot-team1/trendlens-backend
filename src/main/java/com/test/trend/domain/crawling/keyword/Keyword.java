@@ -2,7 +2,12 @@ package com.test.trend.domain.crawling.keyword;
 
 import java.time.LocalDateTime;
 
+import com.test.trend.enums.YesNo;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -29,7 +34,9 @@ public class Keyword {
 	private Long seqKeyword;
 	private String name;
 	private String category;
-	private String  isActive = "Y";
+	
+	@Enumerated(EnumType.STRING)
+	private YesNo isActive = YesNo.Y;
 	
 	private LocalDateTime createdAt;
 	private LocalDateTime updateAt;

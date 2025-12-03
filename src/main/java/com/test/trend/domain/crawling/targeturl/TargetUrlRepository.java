@@ -1,5 +1,7 @@
 package com.test.trend.domain.crawling.targeturl;
 
-public interface TargetUrlRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface TargetUrlRepository extends JpaRepository<TargetUrl, Long>{
 
 }

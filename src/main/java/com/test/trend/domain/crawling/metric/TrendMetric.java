@@ -3,8 +3,11 @@ package com.test.trend.domain.crawling.metric;
 import java.time.LocalDateTime;
 
 import com.test.trend.domain.crawling.keyword.Keyword;
+import com.test.trend.enums.YesNo;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -34,7 +37,10 @@ public class TrendMetric {
 	
 	private LocalDateTime baseDate;
 	private Double ratio;
-	private String isHot = "N";
+	
+	@Enumerated(EnumType.STRING)
+	private YesNo isHot = YesNo.N;
+	
 	private String rawJson;
 	
 	private LocalDateTime createdAt;

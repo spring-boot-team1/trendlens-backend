@@ -1,5 +1,7 @@
 package com.test.trend.domain.crawling.insight;
 
-public interface WeeklyInsightRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface WeeklyInsightRepository extends JpaRepository<WeeklyInsight, Long>{
 
 }

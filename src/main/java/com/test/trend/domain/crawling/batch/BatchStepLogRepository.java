@@ -1,5 +1,7 @@
 package com.test.trend.domain.crawling.batch;
 
-public interface BatchStepLogRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface BatchStepLogRepository extends JpaRepository<BatchStepLog, Long>{
 
 }

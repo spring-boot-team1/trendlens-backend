@@ -1,5 +1,7 @@
 package com.test.trend.domain.crawling.interest;
 
-public interface AccountKeywordRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface AccountKeywordRepository extends JpaRepository<AccountKeyword, Long>{
 
 }

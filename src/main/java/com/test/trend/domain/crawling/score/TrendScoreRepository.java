@@ -1,5 +1,7 @@
 package com.test.trend.domain.crawling.score;
 
-public interface TrendScoreRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface TrendScoreRepository extends JpaRepository<TrendScore, Long>{
 
 }
