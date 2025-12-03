@@ -1,5 +1,6 @@
 package com.test.trend;
 
+import com.test.trend.domain.mapper.SampleMapper;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import java.sql.Connection;
 @RequiredArgsConstructor
 public class TestController {
     private final DataSource dataSource;
+    private final SampleMapper mapper;
 
     //DB 테스트 접속 URL: localhost:8080/trend/db-test
     @GetMapping("/db-test")
@@ -24,6 +26,11 @@ public class TestController {
             e.printStackTrace();
             return "DB Connection Failed: " + e.getMessage();
         }
+    }
+
+    @GetMapping("/time")
+    public String time() {
+        return mapper.time();
     }
 
     // Swagger 테스트 - 접속 URL: http://localhost:8080/trend/swagger-ui/index.html
