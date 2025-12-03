@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.test.trend.domain.payment.entity.UserKeywordInsight;
-import com.test.trend.domain.payment.repository.UserKeywordInsightRepository;
+import com.test.trend.domain.payment.payment.entity.UserKeywordInsight;
+import com.test.trend.domain.payment.payment.repository.UserKeywordInsightRepository;
 
 @SpringBootTest
 @Transactional

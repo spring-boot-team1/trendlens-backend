@@ -1,4 +1,4 @@
-package com.test.trend.domain.payment.entity;
+package com.test.trend.domain.payment.payment.entity;
 
 import java.time.LocalDateTime;
 
@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.SequenceGenerator;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -18,18 +19,18 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserTrendHistory {
-
+public class UserBehaviorLog {
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqUserTrendHistoryGenerator")
-	@SequenceGenerator(name = "seqUserTrendHistoryGenerator", sequenceName = "seqUserTrendHistory", allocationSize = 1)
-	private Long seqUserTrendHistory;
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqLogGenerator")
+	@SequenceGenerator(name = "seqLogGenerator", sequenceName = "seqLog", allocationSize = 1)
+	private Long seqLog;
 	
 	private Long seqAccount;
-	private Long seqKeyword;
+	private String eventType;
+	
+	@Lob
+	private String eventDetail;
+	private LocalDateTime eventTime;
 
-	private LocalDateTime viewAt;
-	
-	private String sourcePage;
-	
 }

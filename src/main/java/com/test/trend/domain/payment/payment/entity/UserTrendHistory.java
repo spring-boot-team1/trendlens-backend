@@ -1,4 +1,4 @@
-package com.test.trend.domain.payment.entity;
+package com.test.trend.domain.payment.payment.entity;
 
 import java.time.LocalDateTime;
 
@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.SequenceGenerator;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -19,22 +18,18 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserKeywordInsight {
+public class UserTrendHistory {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqUserKeywordInsightGenerator")
-	@SequenceGenerator(name = "seqUserKeywordInsightGenerator", sequenceName = "seqUserKeywordInsight", allocationSize = 1)
-	private Long seqUserKeywordInsight;
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqUserTrendHistoryGenerator")
+	@SequenceGenerator(name = "seqUserTrendHistoryGenerator", sequenceName = "seqUserTrendHistory", allocationSize = 1)
+	private Long seqUserTrendHistory;
 	
 	private Long seqAccount;
 	private Long seqKeyword;
+
+	private LocalDateTime viewAt;
 	
-	@Lob
-	private String insightText;
-	
-	private Double trendScore;
-	private String hotYn; // Y/N
-	
-	private LocalDateTime createdAt;
+	private String sourcePage;
 	
 }

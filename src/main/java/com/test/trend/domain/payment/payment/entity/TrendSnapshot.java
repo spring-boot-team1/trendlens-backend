@@ -1,4 +1,4 @@
-package com.test.trend.domain.payment.entity;
+package com.test.trend.domain.payment.payment.entity;
 
 import java.time.LocalDateTime;
 

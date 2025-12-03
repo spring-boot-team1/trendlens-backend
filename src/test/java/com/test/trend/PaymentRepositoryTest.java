@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.test.trend.domain.payment.entity.Payment;
-import com.test.trend.domain.payment.repository.PaymentRepository;
+import com.test.trend.domain.payment.payment.entity.Payment;
+import com.test.trend.domain.payment.payment.repository.PaymentRepository;
 
 @SpringBootTest
 @Transactional
