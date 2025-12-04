@@ -12,15 +12,24 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class AccountMapper {
-    //builder(DTO -> 엔티티로 변환)
+    /**
+     * builder(RegisterRequestDTO -> Account)
+     * DTO -> 엔티티로 변환
+     * @param dto RegisterRequestDTO
+     * @return Entity
+     */
     public Account toEntity(RegisterRequestDTO dto) {
         return Account.builder()
                 .email(dto.getEmail())
-                .password(dto.getPassword()) //암호화는 Service 계층에서
+                .password(null) //암호화는 Service 계층에서 진행, 서비스 계층에서 setPassword 필요
                 .build();
     }
 
-    //builder(Entity -> DTO로 변환)
+    /**
+     * Account → AccountDTO (응답용)
+     * @param entity
+     * @return AccountDTO
+     */
     public AccountDTO toDTO(Account entity){
         return AccountDTO.builder()
                 .seqAccount(entity.getSeqAccount())

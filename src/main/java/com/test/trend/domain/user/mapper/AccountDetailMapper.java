@@ -1,13 +1,34 @@
 package com.test.trend.domain.user.mapper;
 
 import com.test.trend.domain.user.dto.AccountDetailDTO;
+import com.test.trend.domain.user.dto.RegisterRequestDTO;
 import com.test.trend.domain.user.entity.Account;
 import com.test.trend.domain.user.entity.AccountDetail;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AccountDetailMapper {
-    //builder(DTO -> 엔티티로 변환)
+
+    /**
+     * RegisterRequestDTO → AccountDetailDTO 변환
+     * @param dto RegisterRequestDTO
+     * @return AccountDetailDTO
+     */
+    public AccountDetailDTO fromRegisterDTO(RegisterRequestDTO dto) {
+        return AccountDetailDTO.builder()
+                .username(dto.getUsername())
+                .nickname(dto.getNickname())
+                .phonenum(dto.getPhonenum())
+                .birthday(dto.getBirthday())
+                .build();
+    }
+
+    /**
+     * builder(DTO -> 엔티티로 변환)
+     * @param dto AccountDetailDTO
+     * @param account Account 엔티티
+     * @return AccountDetail 엔티티
+     */
     public AccountDetail toEntity(AccountDetailDTO dto, Account account) {
         return AccountDetail.builder()
                 .seqAccountDetail(dto.getSeqAccountDetail())
@@ -19,6 +40,8 @@ public class AccountDetailMapper {
                 .account(account)
                 .build();
     }
+
+
 
     //builder(엔티티 -> DTO로 변환)
     public AccountDetailDTO toDTO(AccountDetail entity) {
@@ -32,4 +55,6 @@ public class AccountDetailMapper {
                 .profilepic(entity.getProfilepic())
                 .build();
     }
+
+
 }
