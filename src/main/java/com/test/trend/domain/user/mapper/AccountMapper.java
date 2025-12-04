@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class AccountMapper {
-    //builder(엔티티로 변환)
+    //builder(DTO -> 엔티티로 변환)
     public Account toEntity(RegisterRequestDTO dto) {
         return Account.builder()
                 .email(dto.getEmail())
@@ -20,14 +20,14 @@ public class AccountMapper {
                 .build();
     }
 
-    //builder(DTO로 변환)
-    public AccountDTO toDTO(Account account){
+    //builder(Entity -> DTO로 변환)
+    public AccountDTO toDTO(Account entity){
         return AccountDTO.builder()
-                .seqAccount(account.getSeqAccount())
-                .email(account.getEmail())
-                .role(account.getRole())
-                .provider(account.getProvider())
-                .providerId(account.getProviderId())
+                .seqAccount(entity.getSeqAccount())
+                .email(entity.getEmail())
+                .role(entity.getRole())
+                .provider(entity.getProvider())
+                .providerId(entity.getProviderId())
                 .build();
     }
 }
