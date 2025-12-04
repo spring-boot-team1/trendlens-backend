@@ -25,18 +25,20 @@ public class AccountDetailMapper {
 
     /**
      * builder(DTO -> 엔티티로 변환)
-     * @param dto AccountDetailDTO
-     * @param account Account 엔티티
+     *
+     * @param dto       AccountDetailDTO
+     * @param account   Account 엔티티
+     * @param imagePath 이미지 저장 경로
      * @return AccountDetail 엔티티
      */
-    public AccountDetail toEntity(AccountDetailDTO dto, Account account) {
+    public AccountDetail toEntity(AccountDetailDTO dto, Account account, String imagePath) {
         return AccountDetail.builder()
                 .seqAccountDetail(dto.getSeqAccountDetail())
                 .username(dto.getUsername())
                 .nickname(dto.getNickname())
                 .phonenum(dto.getPhonenum())
                 .birthday(dto.getBirthday())
-                .profilepic(dto.getProfilepic())
+                .profilepic(imagePath)
                 .account(account)
                 .build();
     }

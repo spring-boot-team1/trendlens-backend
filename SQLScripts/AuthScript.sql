@@ -39,4 +39,7 @@ ALTER TABLE AccountDetail ADD CONSTRAINT "FK_Account_TO_AccountDetail" FOREIGN K
 select * from Account;
 select * from AccountDetail;
 
+select * from Account
+    inner join AccountDetail AD on Account.seqAccount = AD.seqAccount;
+
 commit;

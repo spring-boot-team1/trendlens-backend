@@ -1,5 +1,6 @@
 package com.test.trend.domain.account.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
@@ -12,7 +13,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequestDTO {
-    @NotBlank //null체크, 빈문자열체크, " "체크
+    @Email(message = "올바른 이메일 형식이 아닙니다.") //유효성 검사
+    @NotBlank(message="이메일은 필수 입력값입니다.") //null체크, 빈문자열체크, " "체크
     private String email;
 
     @NotBlank

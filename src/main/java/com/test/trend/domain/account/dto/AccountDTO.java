@@ -1,6 +1,8 @@
 package com.test.trend.domain.account.dto;
 
 import com.test.trend.enums.Role;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 /**
