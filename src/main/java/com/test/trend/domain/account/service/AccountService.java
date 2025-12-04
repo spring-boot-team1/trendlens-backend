@@ -10,14 +10,12 @@ import com.test.trend.domain.account.repository.AccountDetailRepository;
 import com.test.trend.domain.account.repository.AccountRepository;
 import com.test.trend.domain.account.service.util.ServiceUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.util.UUID;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +36,13 @@ public class AccountService {
         
         //비밀번호 암호화
         String encodedPW = passwordEncoder.encode(dto.getPassword());
-        
+
+        //생년월일 유효성검사 및 YYYY-MM-DD 형태로 파싱
+        LocalDate birthday = serviceUtil.parseAndValidateBirthday(dto.getBirthday());
+
+        //전화번호 유효성검사 및 000-0000-0000 형태로 파싱
+        String phonenum = serviceUtil.parseandValidatePhoneNum(dto.getPhonenum());
+
         //이미지 저장
         serviceUtil.validateFileSize(image);
         serviceUtil.validateImageFile(image);
@@ -55,7 +59,7 @@ public class AccountService {
         //registerrequestdto를 AccountDetailDTO로 변환
         AccountDetailDTO accountDetailDTO= accountDetailMapper.fromRegisterDTO(dto);
         // AccountDetailDTO를 AccountDetail 엔티티로 변환
-        AccountDetail accountDetail = accountDetailMapper.toEntity(accountDetailDTO, account, imagePath);
+        AccountDetail accountDetail = accountDetailMapper.toEntity(accountDetailDTO, account, imagePath, birthday, phonenum);
 
         // DB 저장
         accountRepository.save(account);

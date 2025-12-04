@@ -6,6 +6,8 @@ import com.test.trend.domain.account.entity.Account;
 import com.test.trend.domain.account.entity.AccountDetail;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
 @Component
 public class AccountDetailMapper {
 
@@ -18,8 +20,8 @@ public class AccountDetailMapper {
         return AccountDetailDTO.builder()
                 .username(dto.getUsername())
                 .nickname(dto.getNickname())
-                .phonenum(dto.getPhonenum())
-                .birthday(dto.getBirthday())
+//                .phonenum(dto.getPhonenum()) //service에서 넣음
+//                .birthday(dto.getBirthday()) //service에서 넣음
                 .build();
     }
 
@@ -29,15 +31,17 @@ public class AccountDetailMapper {
      * @param dto       AccountDetailDTO
      * @param account   Account 엔티티
      * @param imagePath 이미지 저장 경로
+     * @param birthday
+     * @param phonenum
      * @return AccountDetail 엔티티
      */
-    public AccountDetail toEntity(AccountDetailDTO dto, Account account, String imagePath) {
+    public AccountDetail toEntity(AccountDetailDTO dto, Account account, String imagePath, LocalDate birthday, String phonenum) {
         return AccountDetail.builder()
                 .seqAccountDetail(dto.getSeqAccountDetail())
                 .username(dto.getUsername())
                 .nickname(dto.getNickname())
-                .phonenum(dto.getPhonenum())
-                .birthday(dto.getBirthday())
+                .phonenum(phonenum)
+                .birthday(birthday)
                 .profilepic(imagePath)
                 .account(account)
                 .build();

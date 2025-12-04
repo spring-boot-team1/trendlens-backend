@@ -1,12 +1,12 @@
 package com.test.trend.domain.account.service.util;
 
-import com.test.trend.domain.account.repository.AccountRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
@@ -83,5 +83,52 @@ public class ServiceUtil {
         }
     }
 
+    public LocalDate parseAndValidateBirthday(String birthday) {
 
+        // 1. null 체크 & 길이 체크
+        if (birthday == null || birthday.length() != 8) {
+            throw new IllegalArgumentException("생년월일은 YYYYMMDD 형식의 8자리 여야 합니다.");
+        }
+
+        // 2. 숫자만 있는지 검사
+        if (!birthday.matches("\\d{8}")) {
+            throw new IllegalArgumentException("생년월일은 숫자 8자리여야 합니다.");
+        }
+
+        // 3. 연/월/일 분리
+        int year = Integer.parseInt(birthday.substring(0, 4));
+        int month = Integer.parseInt(birthday.substring(4, 6));
+        int day = Integer.parseInt(birthday.substring(6, 8));
+
+        // 4. 실제 존재하는 날짜인지 체크 (LocalDate가 알아서 검증)
+        try {
+            System.out.println(LocalDate.of(year, month, day));
+            return LocalDate.of(year, month, day);
+        } catch (DateTimeException e) {
+            throw new IllegalArgumentException("유효하지 않은 생년월일입니다.");
+        }
+    }
+
+
+    public String parseandValidatePhoneNum(String phonenum) {
+
+        if (phonenum == null || phonenum.isBlank()) {
+            throw new IllegalArgumentException("전화번호는 필수 입력값입니다.");
+        }
+
+        // 하이픈 모두 제거 (01012345678 형태 만들기)
+        String digits = phonenum.replaceAll("[^0-9]", "");
+
+        // 11자리인지 확인 (010xxxxxxxx)
+        if (!digits.matches("^01[016789]\\d{7,8}$")) {
+            throw new IllegalArgumentException("올바른 전화번호 형식이 아닙니다.");
+        }
+
+        // 010-1234-5678 형식으로 정규화
+        String first = digits.substring(0, 3);
+        String middle = digits.length() == 10 ? digits.substring(3, 6) : digits.substring(3, 7);
+        String last = digits.substring(digits.length() - 4);
+
+        return first + "-" + middle + "-" + last;
+    }
 }

@@ -42,4 +42,6 @@ select * from AccountDetail;
 select * from Account
     inner join AccountDetail AD on Account.seqAccount = AD.seqAccount;
 
+delete from AccountDetail where seqAccountDetail between 3 and 8;
+delete from Account where seqAccount between 3 and 8;
 commit;

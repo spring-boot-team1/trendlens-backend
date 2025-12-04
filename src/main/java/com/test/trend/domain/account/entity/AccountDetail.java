@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name="AccountDetail")
 @Getter
@@ -32,7 +34,7 @@ public class AccountDetail {
     private String phonenum;
 
     @Column
-    private String birthday;
+    private LocalDate birthday;
 
     @Column(length = 50)
     private String profilepic;
