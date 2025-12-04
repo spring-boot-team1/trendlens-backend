@@ -12,7 +12,7 @@ public class GlobalExceptionHandler {
 
     /**
      * IllegalArgumentException을 400 Bad Request로 처리하는 Exception Handler
-     * @param e exception
+     * @param e Exception
      * @return 400 Bad Request
      */
     @ExceptionHandler(IllegalArgumentException.class)
