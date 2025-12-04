@@ -36,8 +36,8 @@ ALTER TABLE AccountDetail ADD CONSTRAINT "PK_AccountDETAIL" PRIMARY KEY (seqAcco
 
 ALTER TABLE AccountDetail ADD CONSTRAINT "FK_Account_TO_AccountDetail" FOREIGN KEY (seqAccount) REFERENCES Account (seqAccount);
 
-select * from Account;
-select * from AccountDetail;
+select * from Account order by seqAccount;
+select * from AccountDetail order by seqAccountDetail;
 
 select * from Account
     inner join AccountDetail AD on Account.seqAccount = AD.seqAccount;
