@@ -1,8 +1,8 @@
-package com.test.trend.domain.user.mapper;
+package com.test.trend.domain.account.mapper;
 
-import com.test.trend.domain.user.dto.AccountDTO;
-import com.test.trend.domain.user.dto.RegisterRequestDTO;
-import com.test.trend.domain.user.entity.Account;
+import com.test.trend.domain.account.dto.AccountDTO;
+import com.test.trend.domain.account.dto.RegisterRequestDTO;
+import com.test.trend.domain.account.entity.Account;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,13 +15,15 @@ public class AccountMapper {
     /**
      * builder(RegisterRequestDTO -> Account)
      * DTO -> 엔티티로 변환
-     * @param dto RegisterRequestDTO
+     *
+     * @param dto       RegisterRequestDTO
+     * @param encodedPW BCrypt로 암호화한 비밀번호
      * @return Entity
      */
-    public Account toEntity(RegisterRequestDTO dto) {
+    public Account toEntity(RegisterRequestDTO dto, String encodedPW) {
         return Account.builder()
                 .email(dto.getEmail())
-                .password(null) //암호화는 Service 계층에서 진행, 서비스 계층에서 setPassword 필요
+                .password(encodedPW) //암호화는 Service 계층에서 진행
                 .build();
     }
 

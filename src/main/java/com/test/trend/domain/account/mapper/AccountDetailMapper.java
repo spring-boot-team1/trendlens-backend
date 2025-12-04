@@ -1,9 +1,9 @@
-package com.test.trend.domain.user.mapper;
+package com.test.trend.domain.account.mapper;
 
-import com.test.trend.domain.user.dto.AccountDetailDTO;
-import com.test.trend.domain.user.dto.RegisterRequestDTO;
-import com.test.trend.domain.user.entity.Account;
-import com.test.trend.domain.user.entity.AccountDetail;
+import com.test.trend.domain.account.dto.AccountDetailDTO;
+import com.test.trend.domain.account.dto.RegisterRequestDTO;
+import com.test.trend.domain.account.entity.Account;
+import com.test.trend.domain.account.entity.AccountDetail;
 import org.springframework.stereotype.Component;
 
 @Component

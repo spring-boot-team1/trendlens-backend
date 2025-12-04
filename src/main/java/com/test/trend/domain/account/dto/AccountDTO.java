@@ -1,6 +1,5 @@
-package com.test.trend.domain.user.dto;
+package com.test.trend.domain.account.dto;
 
-import com.test.trend.domain.user.entity.Account;
 import com.test.trend.enums.Role;
 import lombok.*;
 

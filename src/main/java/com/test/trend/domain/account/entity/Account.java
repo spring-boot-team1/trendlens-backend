@@ -1,6 +1,5 @@
-package com.test.trend.domain.user.entity;
+package com.test.trend.domain.account.entity;
 
-import com.test.trend.domain.user.dto.AccountDTO;
 import com.test.trend.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

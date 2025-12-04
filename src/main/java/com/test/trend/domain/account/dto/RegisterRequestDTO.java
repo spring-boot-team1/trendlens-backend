@@ -1,7 +1,6 @@
-package com.test.trend.domain.user.dto;
+package com.test.trend.domain.account.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 /**

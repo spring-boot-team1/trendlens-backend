@@ -1,4 +1,4 @@
-package com.test.trend.domain.user.dto;
+package com.test.trend.domain.account.dto;
 
 import lombok.*;
 

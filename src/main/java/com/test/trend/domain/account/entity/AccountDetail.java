@@ -1,4 +1,4 @@
-package com.test.trend.domain.user.entity;
+package com.test.trend.domain.account.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
