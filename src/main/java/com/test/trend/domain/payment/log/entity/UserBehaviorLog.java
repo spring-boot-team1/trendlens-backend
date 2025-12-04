@@ -1,4 +1,4 @@
-package com.test.trend.domain.payment.payment.entity;
+package com.test.trend.domain.payment.log.entity;
 
 import java.time.LocalDateTime;
 
@@ -19,22 +19,18 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserKeywordInsight {
-
+public class UserBehaviorLog {
+	
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqUserKeywordInsightGenerator")
-	@SequenceGenerator(name = "seqUserKeywordInsightGenerator", sequenceName = "seqUserKeywordInsight", allocationSize = 1)
-	private Long seqUserKeywordInsight;
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqLogGenerator")
+	@SequenceGenerator(name = "seqLogGenerator", sequenceName = "seqLog", allocationSize = 1)
+	private Long seqLog;
 	
 	private Long seqAccount;
-	private Long seqKeyword;
+	private String eventType;
 	
 	@Lob
-	private String insightText;
-	
-	private Double trendScore;
-	private String hotYn; // Y/N
-	
-	private LocalDateTime createdAt;
-	
+	private String eventDetail;
+	private LocalDateTime eventTime;
+
 }

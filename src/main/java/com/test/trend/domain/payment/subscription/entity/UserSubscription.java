@@ -35,7 +35,6 @@ public class UserSubscription {
 	
 	private String autoRenewYn;	// Y/N
 	private String status;	// ACTIVE/CANCELED/EXPIRED
-	
 	private String cancelReason;
 	
 	private LocalDateTime createdAt;
