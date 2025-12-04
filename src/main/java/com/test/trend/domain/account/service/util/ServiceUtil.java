@@ -120,7 +120,7 @@ public class ServiceUtil {
         String digits = phonenum.replaceAll("[^0-9]", "");
 
         // 11자리인지 확인 (010xxxxxxxx)
-        if (!digits.matches("^01[016789]\\d{7,8}$")) {
+        if (!digits.matches("^01[016789]\\d{8}$")) {
             throw new IllegalArgumentException("올바른 전화번호 형식이 아닙니다.");
         }
 
