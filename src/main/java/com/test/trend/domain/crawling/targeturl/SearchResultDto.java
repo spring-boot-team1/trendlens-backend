@@ -8,5 +8,6 @@ import lombok.Builder;
 public record SearchResultDto(
 		String title,
 		String url,
+		String description,
 		LocalDateTime postDate
 		){}
