@@ -32,7 +32,7 @@ public class Keyword {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqKeywordGenerator")
 	private Long seqKeyword;
-	private String name;
+	private String keyword;
 	private String category;
 	
 	@Enumerated(EnumType.STRING)
