@@ -13,4 +13,6 @@ public interface TargetUrlRepository extends JpaRepository<TargetUrl, Long>{
 
 	List<TargetUrl> findByStatus(TargetUrlStatus wait);
 
+    boolean existsByUrl(String url);
+
 }
