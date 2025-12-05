@@ -53,6 +53,17 @@ public class CustomAccountDetails implements UserDetails {
     }
 
     /**
+     * 사용자 닉네임을 추출
+     * @return 사용자 닉네임
+     */
+    public String getNickname() {
+        if(account.getAccountDetail() == null ) {
+            return null;
+        }
+        return account.getAccountDetail().getNickname();
+    }
+
+    /**
      * Indicates whether the user's account has expired. An expired account cannot be
      * authenticated.
      *
