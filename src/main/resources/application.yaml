@@ -32,6 +32,12 @@ spring:
       max-file-size: 10MB #업로드 가능한 개별 파일 최대 용량
       max-request-size: 20MB #요청 전체 크기(파일 여러 개일 경우)
 
+  #Redis 설정
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 
 #파일 업로드 경로 설정(나중에 AWS S3로 교체 예정)
 file:
