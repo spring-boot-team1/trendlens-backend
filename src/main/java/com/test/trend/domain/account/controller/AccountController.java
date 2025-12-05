@@ -24,6 +24,7 @@ public class AccountController {
     private final ObjectMapper objectMapper;
     private final Validator validator;
 
+    @Hidden
     @GetMapping("/api/v1/login")
     public String login() {
         return "UserController >>>>> /login";
@@ -34,7 +35,7 @@ public class AccountController {
      * 계속 application/octet-stream으로 인식됨
      * @param dto 폼데이터(이미지 제외)
      * @param image 프로필사진
-     * @return
+     * @return ResponseEntity 200 Ok
      */
     @Hidden
     @PostMapping(value ="/api/v1/signup",
@@ -51,7 +52,7 @@ public class AccountController {
      * 회원 가입 요청 처리
      * @param dtoJson 폼데이터(이미지 제외)
      * @param image 프로필사진
-     * @return
+     * @return ResponseEntity 200 Ok
      */
     @PostMapping(value ="/api/v2/signup",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
