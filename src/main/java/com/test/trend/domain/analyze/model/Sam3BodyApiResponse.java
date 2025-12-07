@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class Sam3BodyApiResponse {
 
-    private String success;
+    private boolean success;
     private JsonNode data;
 
 }
