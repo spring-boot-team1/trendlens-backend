@@ -67,7 +67,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     //aws s3 관련 의존성
-    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+    // 🔵 Spring Cloud AWS BOM (버전은 변수로 빼도 되고, 그냥 박아도 됨)
+    implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.4.2")
+    // 🔵 S3 연동용 스타터
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 }
 
 tasks.named('test') {
