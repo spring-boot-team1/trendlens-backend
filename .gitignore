@@ -36,3 +36,7 @@ out/
 ### VS Code ###
 .vscode/
 src/main/resources/secret.yaml
+
+
+### MAC
+.DS_Store
