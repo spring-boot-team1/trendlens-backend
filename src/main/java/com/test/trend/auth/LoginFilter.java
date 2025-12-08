@@ -8,6 +8,7 @@ import com.test.trend.domain.account.repository.AccountRepository;
 import com.test.trend.domain.account.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +47,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
      * @param authManager 인증 담당
      * @param jwtUtil 토큰 발행 담당
      */
-    public LoginFilter(AccountRepository accountRepository, AccountDetailRepository accountDetailRepository, AuthenticationManager authManager, JWTUtil jwtUtil, TokenService tokenService) {
+    public LoginFilter(
+            AccountRepository accountRepository,
+            AccountDetailRepository accountDetailRepository,
+            AuthenticationManager authManager,
+            JWTUtil jwtUtil,
+            TokenService tokenService) {
         this.accountRepository = accountRepository;
         this.accountDetailRepository = accountDetailRepository;
         this.authManager = authManager;
@@ -136,7 +142,16 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         tokenService.saveRefreshToken(account.getSeqAccount(), refreshToken, jwtUtil.getRefreshExpiredMs());
 
         // 리프레시토큰을 클라이언트에게 전달
-        response.setHeader("RefreshToken", refreshToken);
+        //헤더(임시)
+        //response.setHeader("RefreshToken", refreshToken);
+
+        // HttpOnly 쿠키를 생성(보안 문제)
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setMaxAge((int)(jwtUtil.getRefreshExpiredMs()/1000)); //단위: 초
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        //cookie.setSecure(true); //Https에서 사용한 쿠키값 암호화 옵션, 나중에 배포시 주석해제예정
+        response.addCookie(cookie);
     }
 
     /**
