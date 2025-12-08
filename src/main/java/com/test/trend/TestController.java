@@ -45,6 +45,12 @@ public class TestController {
         return "swagger-ok";
     }
 
+    /**
+     * 로그인 확인용 테스트 컨트롤러
+     * @param authentication authentication
+     * @param header HTTP 헤더
+     * @return 로그인 사용자의 claims
+     */
     @GetMapping("/auth-check")
     public String authCheck(Authentication authentication, @RequestHeader("Authorization") String header) {
         CustomAccountDetails user = (CustomAccountDetails) authentication.getPrincipal();
