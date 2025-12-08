@@ -173,4 +173,29 @@ public class JWTUtil {
         return getClaims(token).getExpiration().before(new Date());
     }
 
+    /**
+     * JWT 토큰의 유효성 검사
+     * @param refreshToken 리프레시토큰 문자열
+     * @return 유효하면 true, 아니면 false
+     */
+    public boolean validateToken(String refreshToken) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(refreshToken)
+                    .getPayload();
+            //만료 여부 확인
+            return !claims.getExpiration().before(new Date());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    //TODO 구현 필요(Refresh Token에서 SeqAccount 꺼내기)
+    public Long getUserIdFromRefresh(String refreshToken) {
+        //refreshToken에서 seqAccount 꺼내오기
+        getClaims(refreshToken).get("seqAccount", String.class);
+        return 1L;
+    }
 }

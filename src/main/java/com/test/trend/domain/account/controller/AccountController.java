@@ -4,11 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.test.trend.domain.account.dto.RegisterRequestDTO;
 import com.test.trend.domain.account.service.AccountService;
+import com.test.trend.domain.account.service.AuthService;
+import com.test.trend.domain.account.service.TokenService;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Valid;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.antlr.v4.runtime.Token;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +27,7 @@ public class AccountController {
     private final AccountService accountService;
     private final ObjectMapper objectMapper;
     private final Validator validator;
+    private final AuthService authService;
 
     @Hidden
     @GetMapping("/api/v1/login")
@@ -71,5 +76,12 @@ public class AccountController {
         accountService.signup(dto, image); //비즈니스 로직은 Service객체에 위임
         return ResponseEntity.ok().build(); // 200 OK
     }
+
+    @PostMapping("/api/vi/reissue")
+    public ResponseEntity<?> reissue(@CookieValue(value = "refreshToken", required = false) String refreshToken, HttpServletResponse response) {
+        String newAccessToken = authService.reissue(refreshToken, response);
+        return null;
+    }
+
 
 }
