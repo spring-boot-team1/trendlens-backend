@@ -80,7 +80,7 @@ public class TargetUrlService {
 		System.out.println("[TARGET] keyword text = '" + keyword.getKeyword() + "'");
 		
 		List<SearchResultDto> results = 
-				searchApiService.search(keyword.getKeyword());
+				searchApiService.searchBlogUrls(keyword.getKeyword());
 		
 		System.out.println("[TARGET] result size ="+ results.size());
 		

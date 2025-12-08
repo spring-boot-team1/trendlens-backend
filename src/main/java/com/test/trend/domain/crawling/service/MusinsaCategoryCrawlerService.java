@@ -1,152 +1,133 @@
 package com.test.trend.domain.crawling.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.test.trend.domain.crawling.keyword.Keyword;
-import com.test.trend.domain.crawling.keyword.KeywordRepository;
-import com.test.trend.domain.crawling.targeturl.TargetUrl;
-import com.test.trend.domain.crawling.targeturl.TargetUrlRepository;
-import com.test.trend.enums.TargetUrlStatus;
-import lombok.RequiredArgsConstructor;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
+import com.test.trend.domain.crawling.keyword.RisingKeywordDto;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 @Service
-@RequiredArgsConstructor
 public class MusinsaCategoryCrawlerService {
 
-    private final TargetUrlRepository targetUrlRepository;
-    private final KeywordRepository keywordRepository;
+    public List<RisingKeywordDto> crawlRisingKeywords() {
+        List<RisingKeywordDto> result = new ArrayList<>();
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+        ChromeOptions options = new ChromeOptions();
+        options.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
+        options.setExperimentalOption("useAutomationExtension", false);
+        options.addArguments("--disable-blink-features=AutomationControlled");
+        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--start-maximized");
+        // options.addArguments("--headless"); // 디버깅 끝나면 주석 해제
 
-    private Connection connect(String url) {
-        return Jsoup.connect(url)
-                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                        + "AppleWebKit/537.36 (KHTML, like Gecko) "
-                        + "Chrome/120.0.0.0 Safari/537.36")
-                .timeout(5000);
-    }
+        WebDriver driver = new ChromeDriver(options);
 
-    /**
-     * 무신사 카테고리 페이지 1개를 크롤링해서
-     * 상품 상세 URL을 TargetUrl(WAIT)로 저장
-     *
-     * @param categoryUrl  무신사 카테고리 URL (맨투맨 카테고리 등)
-     * @param seqKeyword   이 URL들을 묶어줄 Keyword PK
-     * @return 새로 저장된 URL 개수
-     */
-    public int crawlCategory(String categoryUrl, Long seqKeyword) throws Exception {
+        try {
+            System.out.println(">>> [Debug] 무신사 랭킹 접속...");
+            driver.get("https://www.musinsa.com/main/musinsa/ranking?gf=A&storeCode=musinsa&sectionId=199&contentsId=&categoryCode=000&ageBand=AGE_BAND_ALL&subPan=product");
 
-        // ★ Keyword 엔티티 조회
-        Keyword keyword = keywordRepository.findById(seqKeyword)
-                .orElseThrow(() -> new IllegalArgumentException("Keyword not found: " + seqKeyword));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
-        Document doc = connect(categoryUrl).get();
-
-        Element nextDataScript = doc.selectFirst("script#__NEXT_DATA__");
-        if (nextDataScript == null) {
-            throw new IllegalStateException("__NEXT_DATA__ script not found");
-        }
-
-        String json = nextDataScript.data();
-        // "__NEXT_DATA__" 안에서 /app/goods/ 로 시작하는 URL 문자열만 추출
-
-        Pattern pattern = Pattern.compile("\"(\\/app\\/goods\\/\\d+[^\"}]*)\"");
-        Matcher matcher = pattern.matcher(json);
-
-        int inserted = 0;
-
-        while (matcher.find()) {
-            String detailUrl = matcher.group(1); // "/app/goods/123456?..."
-            if (detailUrl.startsWith("/")) {
-                detailUrl = "https://www.musinsa.com" + detailUrl;
+            // 스크롤 내려서 상품 로딩 (Lazy Loading 대응)
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            for (int i = 0; i < 3; i++) {
+                js.executeScript("window.scrollBy(0, 1000)");
+                Thread.sleep(1000);
             }
 
-            if (targetUrlRepository.existsByUrl(detailUrl)) {
-                continue;
-            }
+            // ★ 중요: 현재 무신사 구조에 맞는 선택자 사용
+            // href에 'goods' 또는 'products'가 포함된 a 태그 찾기
+            List<WebElement> elements = driver.findElements(By.cssSelector("a[href*='/goods/'], a[href*='/products/']"));
 
-            TargetUrl entity = TargetUrl.builder()
-                    .keyword(keyword)
-                    .url(detailUrl)
-                    .title(null)                 // 상품명은 나중에 상세페이지 크롤링 때 채워도 됨
-                    .postDate(LocalDateTime.now())
-                    .domain("MUSINSA")
-                    .build();                    // status/createdAt은 @PrePersist로 자동 셋팅
+            System.out.println(">>> [Debug] 발견된 링크 개수: " + elements.size());
 
-            targetUrlRepository.save(entity);
-            inserted++;
-        }
+            List<String> visitedTitles = new ArrayList<>(); // 중복 방지용
 
-        System.out.println(">>> Inserted Musinsa URLs: " + inserted);
-        return inserted;
-    }
-
-    /**
-     * JSON 트리 전체를 돌면서 goods 정보가 들어있는 노드를 찾아낸다.
-     * (goodsNo + goodsName 기준)
-     */
-    private void collectGoods(JsonNode node, List<MusinsaProduct> out) {
-
-        if (node.isObject()) {
-
-            if (node.has("goodsNo") && node.has("goodsName")) {
-
-                System.out.println(">>> goods node hit:" + node.toString().substring(0, Math.min(200, node.toString().length())));
-
-                String goodsNo = node.get("goodsNo").asText();
-                String name = node.get("goodsName").asText();
-
-                // 상세 페이지 링크 후보 필드 (실제 JSON 보고 필요하면 수정)
-                String link = null;
-                if (node.has("linkUrl")) {
-                    link = node.get("linkUrl").asText();
-                } else if (node.has("goodsUrl")) {
-                    link = node.get("goodsUrl").asText();
-                } else if (node.has("url")) {
-                    link = node.get("url").asText();
+            for (WebElement el : elements) {
+                // 1. 키워드(상품명) 추출
+                String title = el.getAttribute("title");
+                if (title == null || title.isBlank()) {
+                    title = el.getText();
                 }
 
-                // 썸네일 이미지 후보 필드 (지금은 안 쓰지만 일단 보관)
-                String imageUrl = null;
-                if (node.has("imageUrl")) {
-                    imageUrl = node.get("imageUrl").asText();
-                } else if (node.has("image")) {
-                    imageUrl = node.get("image").asText();
-                } else if (node.has("img")) {
-                    imageUrl = node.get("img").asText();
+                // 유효성 검사 (광고, 좋아요 버튼 등 제외)
+                String href = el.getAttribute("href");
+                if (href == null || href.contains("/like/") || href.contains("/cart/") || href.contains("/reviews")) {
+                    continue;
                 }
 
-                out.add(new MusinsaProduct(goodsNo, name, link, imageUrl));
+                if (title != null && title.length() > 1) {
+                    title = title.replaceAll("\n", " ").trim(); // 줄바꿈 제거
+
+                    // 중복이 아니고, 의미 있는 단어만
+                    if (!visitedTitles.contains(title)) {
+                        visitedTitles.add(title);
+
+                        // 2. 카테고리 자동 분류
+                        String category = detectCategory(title);
+
+                        // DTO에 담기
+                        result.add(new RisingKeywordDto(title, category));
+                        System.out.println("   + 수집: [" + category + "] " + title);
+                    }
+                }
+
+                if (result.size() >= 5) break; // 20개만 수집
             }
 
-            node.fields().forEachRemaining(entry -> collectGoods(entry.getValue(), out));
-
-        } else if (node.isArray()) {
-            for (JsonNode child : node) {
-                collectGoods(child, out);
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            driver.quit();
         }
+
+        return result;
     }
 
-    /**
-     * 내부용 DTO (엔티티 아님)
-     */
-    private record MusinsaProduct(
-            String goodsNo,
-            String name,
-            String link,
-            String imageUrl
-    ) {}
+    // 키워드 기반 카테고리 분류 로직
+    private String detectCategory(String keyword) {
+        String lower = keyword.toLowerCase();
+
+        if (lower.contains("맨투맨") || lower.contains("후드") || lower.contains("티셔츠")
+                || lower.contains("셔츠") || lower.contains("니트") || lower.contains("가디건")
+                || lower.contains("스웨트") || lower.contains("긴팔")) {
+            return "상의";
+        }
+
+        if (lower.contains("팬츠") || lower.contains("슬랙스") || lower.contains("데님")
+                || lower.contains("청바지") || lower.contains("스커트") || lower.contains("조거")
+                || lower.contains("트레이닝") || lower.contains("바지")) {
+            return "하의";
+        }
+
+        if (lower.contains("패딩") || lower.contains("코트") || lower.contains("자켓")
+                || lower.contains("점퍼") || lower.contains("바람막이") || lower.contains("푸퍼")
+                || lower.contains("플리스") || lower.contains("집업")) {
+            return "아우터";
+        }
+
+        if (lower.contains("스니커즈") || lower.contains("운동화") || lower.contains("부츠")
+                || lower.contains("로퍼") || lower.contains("샌들") || lower.contains("워커")) {
+            return "신발";
+        }
+
+        if (lower.contains("가방") || lower.contains("백팩") || lower.contains("크로스백")
+                || lower.contains("모자") || lower.contains("볼캡") || lower.contains("비니")
+                || lower.contains("목도리") || lower.contains("장갑")) {
+            return "잡화";
+        }
+
+        return "기타"; // 분류 안 되면 기타
+    }
 }

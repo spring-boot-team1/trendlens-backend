@@ -22,7 +22,7 @@ public class SearchApiController {
 	
 	@GetMapping("/naver-search")
 	public List<SearchResultDto> testSearch(@RequestParam("keyword") String keyword){
-		return searchApiService.search(keyword);
+		return searchApiService.searchBlogUrls(keyword);
 	}
 
 }

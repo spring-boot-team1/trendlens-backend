@@ -4,15 +4,7 @@ import java.time.LocalDateTime;
 
 import com.test.trend.enums.YesNo;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,6 +32,22 @@ public class Keyword {
 	
 	private LocalDateTime createdAt;
 	private LocalDateTime updateAt;
+
+    @PrePersist
+    public void onCreate() {
+    	LocalDateTime now = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = now;
+        }
+        if (updateAt == null) {
+            updateAt = now;
+        }
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        updateAt = LocalDateTime.now();
+    }
 	
 
 }

@@ -2,21 +2,12 @@ package com.test.trend.domain.crawling.content;
 
 import java.time.LocalDateTime;
 
+import com.test.trend.domain.crawling.keyword.Keyword;
 import com.test.trend.domain.crawling.targeturl.TargetUrl;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.test.trend.enums.YesNo;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "ContentDetail")
@@ -28,24 +19,36 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ContentDetail {
-	
-	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqContentDetailGenerator")
-	private Long seqDetail;
-	
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "seqUrl")
-	private TargetUrl targetUrl;
-	
-	@Lob
-	private String bodyText;
-	private String imageUrl;
-	private String status;
-	private String errorMessage;
-	
-	private LocalDateTime craledAt;
-	private String enginType;
-	
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqContentDetailGenerator")
+    private Long seqDetail;
+
+    // 관계 매핑이 되어 있지만, 단순 저장을 위해 String url도 임시로 허용하거나
+    // 실제로는 TargetUrl 객체를 set 해야 합니다. (일단 파이프라인 작동을 위해 필드 추가)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seqUrl")
+    private TargetUrl targetUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seqKeyword")
+    private Keyword keyword;
+
+    private String title;
+    private String originalUrl;
+
+    @Lob
+    private String bodyText; // 본문 내용
+
+    private String imageUrl;
+    private String status;
+    private String errorMessage;
+    private YesNo analyzedYn = YesNo.N;
+
+    private LocalDateTime crawledAt;
+    private String engineType;
 
 }
