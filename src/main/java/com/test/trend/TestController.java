@@ -1,9 +1,11 @@
 package com.test.trend;
 
+import com.test.trend.domain.account.dto.CustomAccountDetails;
 import com.test.trend.domain.mapper.SampleMapper;
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,5 +40,11 @@ public class TestController {
     @GetMapping("/swagger-test")
     public String swaggerTest() {
         return "swagger-ok";
+    }
+
+    @GetMapping("/auth-check")
+    public String authCheck(Authentication authentication) {
+        CustomAccountDetails user = (CustomAccountDetails) authentication.getPrincipal();
+        return "TestController >>>>> 로그인됨: email=" + user.getEmail() + ", nickname=" + user.getNickname() + ", role=" + user.getRole();
     }
 }
