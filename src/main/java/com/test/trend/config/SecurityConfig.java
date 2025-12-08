@@ -63,7 +63,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login").permitAll()     // 로그인은 항상 허용
                 .requestMatchers("/auth-check").authenticated() //인증 필요 테스트 페이지
-                .requestMatchers("/**").permitAll()
+//                .requestMatchers("/trend/**").permitAll()
                 .anyRequest().permitAll());
 
         //JWTFilter 등록하기
