@@ -46,15 +46,15 @@ public class UserSubscriptionController {
 	 * DTO는 Service 내부에서 다시 빌더 패턴으로 조립되므로 Controller에서는 PK와 reason만 전달한다.
 	 * 
 	 * @param seqUserSub
-	 * @param season
+	 * @param cancelReason
 	 * @return
 	 */
 	@PutMapping("/{seqUserSub}/cancel")
 	public UserSubscriptionDTO cancelSubscription(
-			@PathVariable Long seqUserSub,
-			@RequestParam String season
+			@PathVariable("seqUserSub") Long seqUserSub,
+			@RequestParam("cancelReason") String cancelReason
 	) {
-		return service.cancelSubscription(seqUserSub, season);
+		return service.cancelSubscription(seqUserSub, cancelReason);
 	}
 	
 }

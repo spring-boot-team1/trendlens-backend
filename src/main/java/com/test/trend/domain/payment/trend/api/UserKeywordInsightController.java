@@ -48,8 +48,11 @@ public class UserKeywordInsightController {
 	 * @param seqAccount 사용자 계정 PK
 	 * @return HOT 키워드에 해당하는 인사이트 DTO 리스트
 	 */
-	@GetMapping
-	public List<UserKeywordInsightDTO> getHotKeywords(@PathVariable Long seqAccount) {
+	@GetMapping("/{seqAccount}")
+	public List<UserKeywordInsightDTO> getHotKeywords(@PathVariable("seqAccount") Long seqAccount) {
 		return service.getHotKeywords(seqAccount);
 	}
+
 }
+
+

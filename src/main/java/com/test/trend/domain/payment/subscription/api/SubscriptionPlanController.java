@@ -48,7 +48,7 @@ public class SubscriptionPlanController {
 	 * @return 조회된 구독 상품 DTO, 존재하지 않으면 null 반환
 	 */
 	@GetMapping("/{seqSubscriptionPlan}")
-	public SubscriptionPlanDTO findById(@PathVariable Long seqSubscriptionPlan) {
+	public SubscriptionPlanDTO findById(@PathVariable("seqSubscriptionPlan") Long seqSubscriptionPlan) {
 		return service.findById(seqSubscriptionPlan);
 	}
 	
@@ -71,8 +71,8 @@ public class SubscriptionPlanController {
 	 */
 	@PutMapping("/{seqSubscriptionPlan}/status")
 	public SubscriptionPlanDTO updateStatus(
-			@PathVariable Long seqSubscriptionPlan,
-			@RequestParam String status
+			@PathVariable("seqSubscriptionPlan") Long seqSubscriptionPlan,
+			@RequestParam("status") String status
 	) {
 		return service.updateStatus(seqSubscriptionPlan, status);
 	}

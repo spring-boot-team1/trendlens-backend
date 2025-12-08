@@ -26,4 +26,5 @@ public class SubscriptionPlanDTO {
 
     private LocalDateTime createdAt;
     private LocalDateTime updateAt;
+    
 }

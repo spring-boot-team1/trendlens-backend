@@ -48,8 +48,8 @@ public class PaymentController {
 	 * @param seqPayment seqPayment 승인 처리할 결제 PK
 	 * @return 승인된 결제 정보 DTO
 	 */
-	@PutMapping
-	public PaymentDTO approvePayment(@PathVariable Long seqPayment) {
+	@PutMapping("/{seqPayment}/approve")
+	public PaymentDTO approvePayment(@PathVariable("seqPayment") Long seqPayment) {
 		return service.approvePayment(seqPayment);
 	}
 	
@@ -58,14 +58,14 @@ public class PaymentController {
 	 * <p>
 	 * 실패 사유(failReason)를 기록하고,
 	 * paymentStatus 값을 "FAILED" 로 변경한다.
-	 * @param seqPayment
-	 * @param failReason
-	 * @return
+	 * @param seqPayment 실패 처리할 결제 PK
+	 * @param failReason 실패 사유
+	 * @return 실패 처리된 결제 정보 DTO
 	 */
-	@PutMapping
+	@PutMapping("/{seqPayment}/fail")
 	public PaymentDTO failPayment(
-			@PathVariable Long seqPayment,
-			@RequestParam String failReason
+			@PathVariable("seqPayment") Long seqPayment,
+			@RequestParam("failReason") String failReason
 	) {
 		return service.failPayment(seqPayment, failReason);
 	}

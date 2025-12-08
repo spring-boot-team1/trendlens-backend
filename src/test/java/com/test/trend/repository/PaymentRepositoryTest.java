@@ -1,4 +1,4 @@
-package com.test.trend;
+package com.test.trend.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

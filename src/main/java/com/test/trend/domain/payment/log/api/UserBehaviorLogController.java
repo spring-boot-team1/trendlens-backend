@@ -29,8 +29,8 @@ public class UserBehaviorLogController {
 	 * 프론트엔드 또는 다른 서비스에서 발생한 행동 이벤트를 전달받아
 	 * 그대로 저장하고 저장된 로그 정보를 반환합니다.
 	 * 
-	 * @param dto
-	 * @return
+	 * @param dto 사용자 행동 이벤트 DTO
+	 * @return 저장된 행동 로그 DTO
 	 */
 	@PostMapping
 	public UserBehaviorLogDTO recordEvent(@RequestBody UserBehaviorLogDTO dto) {
