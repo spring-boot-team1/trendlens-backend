@@ -5,6 +5,7 @@ import com.test.trend.auth.JWTUtil;
 import com.test.trend.auth.LoginFilter;
 import com.test.trend.domain.account.repository.AccountDetailRepository;
 import com.test.trend.domain.account.repository.AccountRepository;
+import com.test.trend.domain.account.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +32,7 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final AccountRepository accountRepository;
     private final AccountDetailRepository accountDetailRepository;
+    private final TokenService tokenService;
 
     //OAuth2가 아닐 때 사용하기 위한 BCryptPasswordEncoder
     @Bean
@@ -78,7 +80,8 @@ public class SecurityConfig {
                 accountRepository,
                 accountDetailRepository,
                 manager(configuration),
-                jwtUtil
+                jwtUtil,
+                tokenService
         ), UsernamePasswordAuthenticationFilter.class);
 
 
@@ -104,7 +107,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("http://localhost:5173"); //클라이언트 주소
+        config.addAllowedOriginPattern("http://localhost:5173"); //클라이언트 주소(패턴화, addAllowedOrigin보다 조금 더 유연)
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
         config.setAllowCredentials(true);

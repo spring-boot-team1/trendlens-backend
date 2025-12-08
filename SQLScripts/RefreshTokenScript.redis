@@ -1,3 +1,7 @@
 -- SET test "hello"
 -- GET test
 -- DEL test
+
+-- keys *
+-- get RT:2
+-- ttl RT:2
