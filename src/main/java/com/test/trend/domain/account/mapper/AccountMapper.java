@@ -29,7 +29,7 @@ public class AccountMapper {
 
     /**
      * Account → AccountDTO (응답용)
-     * @param entity
+     * @param entity Account Entity
      * @return AccountDTO
      */
     public AccountDTO toDTO(Account entity){
