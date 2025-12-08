@@ -22,6 +22,7 @@ public class CustomAccountDetails implements UserDetails {
     private final String email;
     private final String role;
     private final String nickname;
+    private final String password;
 
     /**
      * Returns the authorities granted to the user. Cannot return <code>null</code>.
@@ -47,7 +48,7 @@ public class CustomAccountDetails implements UserDetails {
      */
     @Override
     public String getPassword() {
-        return null; // JWT 인증에는 비밀번호 필요없음
+        return password;
     }
 
     /**

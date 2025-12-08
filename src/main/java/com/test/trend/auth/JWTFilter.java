@@ -39,11 +39,17 @@ public class JWTFilter extends OncePerRequestFilter {
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // 로그인 요청은 JWT 검증 대상이 아님
+        if (request.getServletPath().equals("/login")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         //토큰 유무 체크 + 접두어(Bearer) 유무 체크
         String authorization = request.getHeader("Authorization");
 
         if (authorization == null || !authorization.startsWith("Bearer ")) {
-            System.out.println("JWTFilter >>>>> JWT Token Invalid");
+            //System.out.println("JWTFilter >>>>> JWT Token Invalid");
             //인증되지 않은 사용자 -> 익명 처리
             filterChain.doFilter(request, response);
             return;

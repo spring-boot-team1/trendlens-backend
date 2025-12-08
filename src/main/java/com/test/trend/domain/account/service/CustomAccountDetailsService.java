@@ -38,6 +38,7 @@ public class CustomAccountDetailsService implements UserDetailsService {
                     .email(account.getEmail())
                     .role(account.getRole().name())
                     .nickname(account.getAccountDetail().getNickname())
+                    .password(account.getPassword())
                     .build();
         } else {
             //로그인 실패 -> 시큐리티 권장 사항 : 예외 발생(UsernameNotFoundException)
