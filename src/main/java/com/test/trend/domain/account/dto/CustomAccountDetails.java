@@ -1,18 +1,27 @@
 package com.test.trend.domain.account.dto;
 
 import com.test.trend.domain.account.entity.Account;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @RequiredArgsConstructor
+@Builder
+@Getter
 public class CustomAccountDetails implements UserDetails {
 
-    private final Account account; //주입
-
+    // 기존에 CustomAccountDetails는 Account 엔티티에 의존하고 있었음
+    // 인증에 필요한 정보로만 재구성하고, 의존하지 않게끔 변경(Entity는 DB에 저장할 정보에만 관여하지, 인증에는 관여하지 않으므로... 책임을 분리)
+    //private final Account account; //주입
+    private final String email;
+    private final String role;
+    private final String nickname;
 
     /**
      * Returns the authorities granted to the user. Cannot return <code>null</code>.
@@ -21,14 +30,14 @@ public class CustomAccountDetails implements UserDetails {
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Collection<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new GrantedAuthority() {
-            @Override
-            public String getAuthority() {
-                return String.valueOf(account.getRole());
-            }
-        });
-        return authorities;
+//        Collection<GrantedAuthority> authorities = new ArrayList<>();
+//        authorities.add(new GrantedAuthority() {
+//            @Override
+//            public String getAuthority() {
+//                return String.valueOf(account.getRole());
+//            }
+//        });
+        return List.of(() -> role);
     }
 
     /**
@@ -38,7 +47,7 @@ public class CustomAccountDetails implements UserDetails {
      */
     @Override
     public String getPassword() {
-        return account.getPassword();
+        return null; // JWT 인증에는 비밀번호 필요없음
     }
 
     /**
@@ -49,18 +58,7 @@ public class CustomAccountDetails implements UserDetails {
      */
     @Override
     public String getUsername() {
-        return account.getEmail();
-    }
-
-    /**
-     * 사용자 닉네임을 추출
-     * @return 사용자 닉네임
-     */
-    public String getNickname() {
-        if(account.getAccountDetail() == null ) {
-            return null;
-        }
-        return account.getAccountDetail().getNickname();
+        return email;
     }
 
     /**

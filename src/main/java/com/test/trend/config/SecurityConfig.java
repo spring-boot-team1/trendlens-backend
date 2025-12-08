@@ -1,5 +1,6 @@
 package com.test.trend.config;
 
+import com.test.trend.auth.JWTFilter;
 import com.test.trend.auth.JWTUtil;
 import com.test.trend.auth.LoginFilter;
 import lombok.RequiredArgsConstructor;
@@ -60,8 +61,13 @@ public class SecurityConfig {
         */
         //허가 URL
         http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/login").permitAll()     // 로그인은 항상 허용
+                .requestMatchers("/auth-check").authenticated() //인증 필요 테스트 페이지
                 .requestMatchers("/**").permitAll()
                 .anyRequest().permitAll());
+
+        //JWTFilter 등록하기
+        http.addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         //LoginFilter 등록하기
         http.addFilterAt(new LoginFilter(manager(configuration), jwtUtil), UsernamePasswordAuthenticationFilter.class);

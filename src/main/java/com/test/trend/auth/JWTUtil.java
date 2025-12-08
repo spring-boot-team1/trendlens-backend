@@ -42,13 +42,13 @@ public class JWTUtil {
     /**
      * JWT 문자열을 생성하는 메서드
      * 인증 과정을 거친 후 생성된 JWT 문자열은 클라이언트에게 전달된다.
-     * @param username 사용자 이메일
+     * @param email 사용자 이메일
      * @param nickname 사용자 닉네임
      * @param role 사용자 권한
      * @param expiredMs 토큰 만료 시간
      * @return JWT 문자열(header.payload.signature 형태)
      */
-    public String createJWT(String username, String nickname, String role, Long expiredMs){
+    public String createJWT(String email, String nickname, String role, Long expiredMs){
         /* 
         claim(): 토큰의 페이로드에 사용자 정보를 저장
         issuedAt()/expiration(): 토큰 생성/만료 시간
@@ -56,7 +56,7 @@ public class JWTUtil {
         compact(): header.payload.signature 형태의 최종 JWT 문자열을 생성
         */
         return Jwts.builder()
-                .claim("username", username)
+                .claim("email", email)
                 .claim("nickname", nickname)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
@@ -67,24 +67,24 @@ public class JWTUtil {
 
     /**
      * 액세스 토큰 생성 메서드
-     * @param username 사용자 이메일
+     * @param email 사용자 이메일
      * @param nickname 사용자 닉네임
      * @param role 사용자 권한
      * @return 액세스 토큰 JWT 문자열
      */
-    public String createAccessToken(String username, String nickname, String role) {
-        return createJWT(username, nickname, role, accessExpiredMs);
+    public String createAccessToken(String email, String nickname, String role) {
+        return createJWT(email, nickname, role, accessExpiredMs);
     }
 
     /**
      * 리프레시 토큰 생성 메서드
-     * @param username 사용자 이메일
+     * @param email 사용자 이메일
      * @param nickname 사용자 닉네임
      * @param role 사용자 권한
      * @return 리프레시 토큰 JWT 문자열
      */
-    public String createRefreshToken(String username, String nickname, String role) {
-        return createJWT(username, nickname, role, refreshExpiredMs);
+    public String createRefreshToken(String email, String nickname, String role) {
+        return createJWT(email, nickname, role, refreshExpiredMs);
     }
 
     /**
@@ -105,8 +105,8 @@ public class JWTUtil {
      * @param token JWT 문자열
      * @return 사용자 이메일
      */
-    public String getUsername(String token) {
-        return getClaims(token).get("username", String.class);
+    public String getEmail (String token) {
+        return getClaims(token).get("email", String.class);
     }
 
     /**

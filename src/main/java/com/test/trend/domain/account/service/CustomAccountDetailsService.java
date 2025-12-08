@@ -24,20 +24,24 @@ public class CustomAccountDetailsService implements UserDetailsService {
      * object that comes back may have a username that is of a different case than what
      * was actually requested..
      *
-     * @param username the username identifying the user whose data is required.
+     * @param email the username identifying the user whose data is required.
      * @return a fully populated user record (never <code>null</code>)
      * @throws UsernameNotFoundException if the user could not be found or the user has no
      *                                   GrantedAuthority
      */
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Account> account = accountRepository.findByEmail(username);
-        if (account.isPresent()) {
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Account account = accountRepository.findByEmail(email);
+        if (account != null) {
             //로그인 성공 -> UserDetails 객체 생성
-            return new CustomAccountDetails(account.get());
+            return CustomAccountDetails.builder()
+                    .email(account.getEmail())
+                    .role(account.getRole().name())
+                    .nickname(account.getAccountDetail().getNickname())
+                    .build();
         } else {
             //로그인 실패 -> 시큐리티 권장 사항 : 예외 발생(UsernameNotFoundException)
-            throw new UsernameNotFoundException("로그인 실패: " + username);
+            throw new UsernameNotFoundException("로그인 실패: " + email);
         }
     }
 }
