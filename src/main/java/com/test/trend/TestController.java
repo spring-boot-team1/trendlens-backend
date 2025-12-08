@@ -1,5 +1,6 @@
 package com.test.trend;
 
+import com.test.trend.auth.JWTUtil;
 import com.test.trend.domain.account.dto.CustomAccountDetails;
 import com.test.trend.domain.mapper.SampleMapper;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -7,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.sql.DataSource;
@@ -18,6 +20,7 @@ import java.sql.Connection;
 public class TestController {
     private final DataSource dataSource;
     private final SampleMapper mapper;
+    private final JWTUtil jwtUtil;
 
     //DB 테스트 접속 URL: localhost:8080/trend/db-test
     @GetMapping("/db-test")
@@ -43,8 +46,38 @@ public class TestController {
     }
 
     @GetMapping("/auth-check")
-    public String authCheck(Authentication authentication) {
+    public String authCheck(Authentication authentication, @RequestHeader("Authorization") String header) {
         CustomAccountDetails user = (CustomAccountDetails) authentication.getPrincipal();
-        return "TestController >>>>> 로그인됨: email=" + user.getEmail() + ", nickname=" + user.getNickname() + ", role=" + user.getRole();
+        String token = header.replace("Bearer ", "");
+
+        // 추가 Claim 파싱
+        Long seqAccount = jwtUtil.getClaim(token, "seqAccount", Long.class);
+        String provider = jwtUtil.getClaim(token, "provider", String.class);
+        String providerId = jwtUtil.getClaim(token, "providerId", String.class);
+        Long seqAccountDetail = jwtUtil.getClaim(token, "seqAccountDetail", Long.class);
+        String username = jwtUtil.getClaim(token, "username", String.class);
+        String profilepic = jwtUtil.getClaim(token, "profilepic", String.class);
+
+        return """
+        TestController >>>>> 로그인됨:
+        email = %s
+        nickname = %s
+        role = %s
+        seqAccount = %d
+        provider = %s
+        providerId = %s
+        seqAccountDetail = %d
+        username = %s
+        profilepic = %s""".formatted(
+                user.getEmail(),
+                user.getNickname(),
+                user.getRole(),
+                seqAccount,
+                provider,
+                providerId,
+                seqAccountDetail,
+                username,
+                profilepic
+        );
     }
 }

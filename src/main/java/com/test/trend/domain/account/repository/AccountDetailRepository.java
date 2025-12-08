@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AccountDetailRepository extends JpaRepository<AccountDetail, Long> {
 
+    AccountDetail findByAccount_SeqAccount(Long seqAccount);
 }

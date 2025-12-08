@@ -1,10 +1,15 @@
 package com.test.trend.auth;
 
 import com.test.trend.domain.account.dto.CustomAccountDetails;
+import com.test.trend.domain.account.entity.Account;
+import com.test.trend.domain.account.entity.AccountDetail;
+import com.test.trend.domain.account.repository.AccountDetailRepository;
+import com.test.trend.domain.account.repository.AccountRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,6 +28,8 @@ import java.util.Iterator;
  * 개입하여 AuthenticationManager에게 인증을 위임한 뒤, 인증에 성공하면 토큰을 발급한다.
  */
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
+    private final AccountRepository accountRepository;
+    private final AccountDetailRepository accountDetailRepository;
     private final AuthenticationManager authManager; //인증 담당
     private final JWTUtil jwtUtil; //토큰 발행 담당
 
@@ -32,10 +39,14 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     /**
      * LoginFilter 생성자
+     * @param accountRepository 쿼리 담당
+     * @param accountDetailRepository 쿼리 담당
      * @param authManager 인증 담당
      * @param jwtUtil 토큰 발행 담당
      */
-    public LoginFilter(AuthenticationManager authManager, JWTUtil jwtUtil) {
+    public LoginFilter(AccountRepository accountRepository, AccountDetailRepository accountDetailRepository, AuthenticationManager authManager, JWTUtil jwtUtil) {
+        this.accountRepository = accountRepository;
+        this.accountDetailRepository = accountDetailRepository;
         this.authManager = authManager;
         this.jwtUtil = jwtUtil;
     }
@@ -91,8 +102,22 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         //닉네임 꺼내오기
         String nickname = customAccountDetails.getNickname();
 
+        Account account = accountRepository.findByEmail(email);
+        AccountDetail accountDetail = accountDetailRepository.findByAccount_SeqAccount(account.getSeqAccount());
+
+
         //JWT Access Token 생성
-        String accessToken = jwtUtil.createAccessToken(email, nickname, role);
+        String accessToken = jwtUtil.createAccessToken(
+                account.getSeqAccount(),
+                email,
+                role,
+                account.getProvider(),
+                account.getProviderId(),
+                accountDetail.getSeqAccountDetail(),
+                accountDetail.getUsername(),
+                nickname,
+                accountDetail.getProfilepic()
+        );
 
         // 액세스토큰을 클라이언트에게 전달
         response.setHeader("Authorization", "Bearer " + accessToken);

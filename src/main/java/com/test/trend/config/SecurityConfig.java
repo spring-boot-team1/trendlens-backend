@@ -3,6 +3,8 @@ package com.test.trend.config;
 import com.test.trend.auth.JWTFilter;
 import com.test.trend.auth.JWTUtil;
 import com.test.trend.auth.LoginFilter;
+import com.test.trend.domain.account.repository.AccountDetailRepository;
+import com.test.trend.domain.account.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +29,8 @@ public class SecurityConfig {
     //주입(필터 등록 시 사용)
     private final AuthenticationConfiguration configuration;
     private final JWTUtil jwtUtil;
+    private final AccountRepository accountRepository;
+    private final AccountDetailRepository accountDetailRepository;
 
     //OAuth2가 아닐 때 사용하기 위한 BCryptPasswordEncoder
     @Bean
@@ -70,7 +74,12 @@ public class SecurityConfig {
         http.addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         //LoginFilter 등록하기
-        http.addFilterAt(new LoginFilter(manager(configuration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAt(new LoginFilter(
+                accountRepository,
+                accountDetailRepository,
+                manager(configuration),
+                jwtUtil
+        ), UsernamePasswordAuthenticationFilter.class);
 
 
         return http.build();

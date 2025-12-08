@@ -1,6 +1,7 @@
 package com.test.trend.auth;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 //1. JWTUtil 구현
 /**
@@ -42,49 +45,71 @@ public class JWTUtil {
     /**
      * JWT 문자열을 생성하는 메서드
      * 인증 과정을 거친 후 생성된 JWT 문자열은 클라이언트에게 전달된다.
-     * @param email 사용자 이메일
-     * @param nickname 사용자 닉네임
-     * @param role 사용자 권한
+     * @param claims JWT Claim들을 담은 Map
      * @param expiredMs 토큰 만료 시간
      * @return JWT 문자열(header.payload.signature 형태)
      */
-    public String createJWT(String email, String nickname, String role, Long expiredMs){
+    public String createJWT(Map<String, Object> claims, Long expiredMs){
         /* 
         claim(): 토큰의 페이로드에 사용자 정보를 저장
         issuedAt()/expiration(): 토큰 생성/만료 시간
         signWith(): 서명(위변조 방지)
         compact(): header.payload.signature 형태의 최종 JWT 문자열을 생성
         */
-        return Jwts.builder()
-                .claim("email", email)
-                .claim("nickname", nickname)
-                .claim("role", role)
+        JwtBuilder builder = Jwts.builder()
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
-                .signWith(secretKey)
-                .compact();
+                .signWith(secretKey);
+
+        // Map에 있는 모든 claim 자동 추가
+        claims.forEach(builder::claim);
+
+        return builder.compact();
     }
 
     /**
-     * 액세스 토큰 생성 메서드
+     * 액세스 토큰 생성 메서드. claims를 map에 담아 createJWT() 메서드를 반환한다.
+     * @param seqAccount 계정정보 PK
      * @param email 사용자 이메일
-     * @param nickname 사용자 닉네임
      * @param role 사용자 권한
-     * @return 액세스 토큰 JWT 문자열
+     * @param provider OAuth2 제공자
+     * @param providerId OAuth2 제공자 ID
+     * @param seqAccountDetail 계정정보 상세 PK
+     * @param username 사용자 이름(실명)
+     * @param nickname 사용자 닉네임
+     * @param profilepic 프로필 사진
+     * @return createJWT() 메서드
      */
-    public String createAccessToken(String email, String nickname, String role) {
-        return createJWT(email, nickname, role, accessExpiredMs);
+    public String createAccessToken(Long seqAccount, String email, String role, String provider, String providerId, Long seqAccountDetail, String username, String nickname, String profilepic) {
+        Map<String, Object> claims = new HashMap<>();
+        //map에 정보를 담기
+        claims.put("email", email);
+        claims.put("nickname", nickname);
+        claims.put("role", role);
+        claims.put("seqAccount", seqAccount);
+        claims.put("provider", provider);
+        claims.put("providerId", providerId);
+        claims.put("seqAccountDetail", seqAccountDetail);
+        claims.put("username", username);
+        claims.put("profilepic", profilepic);
+        System.out.println("JWTUtil >>>>> AccessToken에 담길 Claims: " + claims);
+        return createJWT(claims, accessExpiredMs);
     }
 
     /**
-     * 리프레시 토큰 생성 메서드
+     * 리프레시 토큰 생성 메서드. claims를 map에 담아 createJWT() 메서드를 반환한다.
+     * @param seqAccount Account 테이블 기본키
      * @param email 사용자 이메일
-     * @param nickname 사용자 닉네임
      * @param role 사용자 권한
      * @return 리프레시 토큰 JWT 문자열
      */
-    public String createRefreshToken(String email, String nickname, String role) {
-        return createJWT(email, nickname, role, refreshExpiredMs);
+    public String createRefreshToken(Long seqAccount, String email, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        //map에 정보를 담기
+        claims.put("seqAccount", seqAccount);
+        claims.put("email", email);
+        claims.put("role", role);
+        return createJWT(claims, refreshExpiredMs);
     }
 
     /**
@@ -98,6 +123,18 @@ public class JWTUtil {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    /**
+     * Claim 꺼내는 getter(통합버전)
+     * @param <T> 반환 타입 (Claim의 자료형)
+     * @param token JWT 문자열
+     * @param key 꺼낼 값의 Key 이름
+     * @param type 꺼낼 값의 자료형 클래스
+     * @return 토큰에서 꺼낸 사용자 정보
+     */
+    public <T> T getClaim(String token, String key, Class<T> type) {
+        return getClaims(token).get(key, type);
     }
 
     /**
