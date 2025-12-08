@@ -5,6 +5,7 @@ import com.test.trend.domain.account.entity.Account;
 import com.test.trend.domain.account.entity.AccountDetail;
 import com.test.trend.domain.account.repository.AccountDetailRepository;
 import com.test.trend.domain.account.repository.AccountRepository;
+import com.test.trend.domain.account.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +33,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AccountDetailRepository accountDetailRepository;
     private final AuthenticationManager authManager; //인증 담당
     private final JWTUtil jwtUtil; //토큰 발행 담당
+    private final TokenService tokenService;
 
     // Redis에 리프레시 토큰 저장할 때에는 어떻게 구현하는지??
     //private final RefreshTokenRepository refreshTokenRepository;
@@ -44,11 +46,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
      * @param authManager 인증 담당
      * @param jwtUtil 토큰 발행 담당
      */
-    public LoginFilter(AccountRepository accountRepository, AccountDetailRepository accountDetailRepository, AuthenticationManager authManager, JWTUtil jwtUtil) {
+    public LoginFilter(AccountRepository accountRepository, AccountDetailRepository accountDetailRepository, AuthenticationManager authManager, JWTUtil jwtUtil, TokenService tokenService) {
         this.accountRepository = accountRepository;
         this.accountDetailRepository = accountDetailRepository;
         this.authManager = authManager;
         this.jwtUtil = jwtUtil;
+        this.tokenService = tokenService;
     }
 
     /**
@@ -122,6 +125,18 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // 액세스토큰을 클라이언트에게 전달
         response.setHeader("Authorization", "Bearer " + accessToken);
 
+        //4. 로그인 성공 시 RefreshToken 발급 & 저장
+        //JWT Refresh Token 생성
+        String refreshToken = jwtUtil.createRefreshToken(
+                account.getSeqAccount(),
+                email,
+                role
+        );
+        //refreshtoken을 Redis에 저장
+        tokenService.saveRefreshToken(account.getSeqAccount(), refreshToken, jwtUtil.getRefreshExpiredMs());
+
+        // 리프레시토큰을 클라이언트에게 전달
+        response.setHeader("RefreshToken", refreshToken);
     }
 
     /**
