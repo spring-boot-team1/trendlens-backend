@@ -33,22 +33,13 @@ public class ContentDetail {
     @JoinColumn(name = "seqUrl")
     private TargetUrl targetUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "seqKeyword")
-    private Keyword keyword;
-
-    private String title;
-    private String originalUrl;
-
     @Lob
     private String bodyText; // 본문 내용
-
     private String imageUrl;
     private String status;
     private String errorMessage;
-    private YesNo analyzedYn = YesNo.N;
-
-    private LocalDateTime crawledAt;
+    private LocalDateTime crawledAt = LocalDateTime.now();
     private String engineType;
+    private YesNo analyzedYn = YesNo.N;
 
 }

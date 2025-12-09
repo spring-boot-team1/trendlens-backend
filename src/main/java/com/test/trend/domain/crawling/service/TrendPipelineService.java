@@ -7,6 +7,9 @@ import com.test.trend.domain.crawling.keyword.Keyword;
 import com.test.trend.domain.crawling.keyword.KeywordRepository;
 import com.test.trend.domain.crawling.keyword.RisingKeywordDto;
 import com.test.trend.domain.crawling.targeturl.SearchResultDto;
+import com.test.trend.domain.crawling.targeturl.TargetUrl;
+import com.test.trend.domain.crawling.targeturl.TargetUrlRepository;
+import com.test.trend.enums.TargetUrlStatus;
 import com.test.trend.enums.YesNo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,20 +27,19 @@ public class TrendPipelineService {
     private final JsoupCrawlerService jsoupService;
     private final ContentDetailRepository contentDetailRepo;
     private final KeywordRepository keywordRepo;
+    private final TargetUrlRepository targetUrlRepo;
     private final WordFrequencyService wordFrequencyService;
 
-    @Transactional
     public void runCrawlingFlow() {
 
         // 1) 무신사에서 (키워드 + 카테고리) 목록 가져오기
         List<RisingKeywordDto> risingKeywords = musinsaService.crawlRisingKeywords();
 
-        risingKeywords = risingKeywords.stream()
-                .limit(5)
-                .toList();
+        if (risingKeywords.size() > 3) {
+            risingKeywords = risingKeywords.subList(0, 3);
+        }
 
         for (RisingKeywordDto rk : risingKeywords) {
-
             String keywordStr = rk.getKeyword();   // 예: "나이키 맨투맨"
             String category = rk.getCategory();    // 예: "상의"
 
@@ -50,44 +52,76 @@ public class TrendPipelineService {
             // 3) 네이버 블로그 검색 (URL 확보)
             List<SearchResultDto> searchResults = searchApiService.searchBlogUrls(keywordStr);
 
-            // 여러 블로그를 동시에 크롤링합니다.
+            // 4) 병렬 처리로 여러 블로그 동시에
             searchResults.parallelStream().forEach(dto -> {
+
                 try {
-                    // 4) 상세 크롤링 (가장 오래 걸리는 작업)
-                    JsoupCrawlerService.CrawledResult result = jsoupService.verifyAndGetContent(dto.url());
-
-                    // 내용이 없거나 null이면 패스
-                    if (result != null && result.content() != null && !result.content().isBlank()) {
-
-                        // 5) ContentDetail 저장
-                        ContentDetail content = ContentDetail.builder()
-                                .keyword(keywordEntity)
-                                .title(dto.title())
-                                .originalUrl(dto.url())
-                                .bodyText(result.content())
-                                .imageUrl(result.imageUrl())
-                                .crawledAt(LocalDateTime.now())
-                                .engineType("SELENIUM")
-                                .status("Y")
-                                .analyzedYn(YesNo.N)
-                                .build();
-
-                        contentDetailRepo.save(content);
-                    }
+                    processSingleContent(keywordEntity, dto);
                 } catch (Exception e) {
-                    System.out.println("   -> 크롤링 실패 (건너뜀): " + dto.url());
+                    System.out.println("  --> [SKIP] 에러:" + e.getMessage());
                 }
             });
 
-            // 네이버 API 보호를 위해 키워드 간에는 살짝 대기 (0.5초)
             try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                Thread.sleep(5000);
+            } catch (Exception e) {
             }
         }
+        System.out.println(">>>>[PipeLine] 모든 작업 완료");
+    }
 
-        System.out.println(">>> [Pipeline] 모든 작업 완료!");
+    private void processSingleContent(Keyword keywordEntity, SearchResultDto dto) {
+
+        TargetUrl targetUrl;
+        try {
+            //[STEP A] TargetUrl 테이블에 먼저 저장(메타데이터)
+            targetUrl = TargetUrl.builder()
+                    .keyword(keywordEntity)
+                    .url(dto.url())
+                    .title(dto.title())
+                    .postDate(dto.postDate())
+                    .domain("NAVER_BLOG")
+                    .status(TargetUrlStatus.WAIT)
+                    .build();
+
+            targetUrl = targetUrlRepo.save(targetUrl);
+        } catch (Exception e) {
+            return;
+        }
+
+        //[STEP B] 상세 크롤링 수행
+        JsoupCrawlerService.CrawledResult result = jsoupService.verifyAndGetContent(dto.url());
+
+        if (result != null && result.content() != null && ! result.content().isBlank()) {
+
+            //[STEP C] ContentDetail 저장 (TargetUrl과 연결)
+            ContentDetail content = ContentDetail.builder()
+                    .targetUrl(targetUrl)
+                    .bodyText(result.content())
+                    .imageUrl(result.imageUrl())
+                    .crawledAt(LocalDateTime.now())
+                    .engineType("Jsoup")
+                    .status("SUCCESS")
+                    .analyzedYn(YesNo.N)
+                    .build();
+            contentDetailRepo.save(content);
+
+            //[STEP D] TargetUrl 상태 업데이터(완료)
+            targetUrl.setStatus(TargetUrlStatus.CRAWLED);
+            targetUrlRepo.save(targetUrl);
+
+            //[Step E] 단어 분석 (키워드 ID 전달)
+            try {
+                wordFrequencyService.analyzeAndSave(content, result.content());
+            } catch (Exception e) {
+                System.out.println(" --> 단어 분석 중 출동 발생(무시함)");
+            }
+        } else {
+            //크롤링 실패시 상태 변겅
+            targetUrl.setStatus(TargetUrlStatus.FAILED);
+            targetUrlRepo.save(targetUrl);
+        }
+
     }
 
 
@@ -109,5 +143,21 @@ public class TrendPipelineService {
                     k.setIsActive(YesNo.Y);
                     return keywordRepo.save(k);
                 });
+    }
+
+    @Transactional
+    public void runWordFrqBath() {
+
+        //아직 분석 안 된 본문만 가져오기
+        List<ContentDetail> targets =
+                contentDetailRepo.findByAnalyzedYn(YesNo.N);
+
+        for (ContentDetail cd : targets) {
+            try {
+                wordFrequencyService.analyzeAndSave(cd, cd.getBodyText());
+            } catch (Exception e) {
+                System.out.println("[WordFreq] 분석 실패 seqContentDetail=" + cd.getSeqDetail());
+            }
+        }
     }
 }

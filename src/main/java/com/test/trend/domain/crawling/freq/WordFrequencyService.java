@@ -30,17 +30,16 @@ public class WordFrequencyService {
     );
 
     @Transactional
-    public void analyzeAndSave(Long seqContentDetail, String content) {
+    public void analyzeAndSave(ContentDetail contentDetail, String content) {
 
-        // 1. 본문 엔티티 조회
-        ContentDetail contentDetail = contentDetailRepository.findById(seqContentDetail).orElseThrow(() -> new IllegalArgumentException("ContentDetail 없음:" + seqContentDetail));
-
-        //2. 이미 분석된 본문이면 바로 패스
+        //1. 이미 분석된 본문이면 바로 패스
         if (contentDetail.getAnalyzedYn() == YesNo.Y) {
             return;
         }
 
-        String bodyText = contentDetail.getBodyText();
+        // 파라미터로 받은 content가 있으면 그걸 쓰고. 없으면 DB에서 가져옴
+        String bodyText = (content != null && !content.isBlank()) ? content : contentDetail.getBodyText();
+
         if (bodyText == null || bodyText.isBlank()) {
             //내용이 없더라도, 한번 건들면 다시 안하게 Y
             contentDetail.setAnalyzedYn(YesNo.Y);
@@ -48,17 +47,17 @@ public class WordFrequencyService {
             return;
         }
 
-        Keyword keyWord = contentDetail.getKeyword();
+        Keyword keyWord = contentDetail.getTargetUrl().getKeyword();
 
         String cleaned = bodyText
-                .replace("[^a-zA-Z0-9가-힣\\s]", " ")
+                .replaceAll("[^a-zA-Z0-9가-힣\\s]", " ")
                 .toLowerCase();
 
         String[] tokens = cleaned.split("\\s+");
 
         Map<String, Integer> wordCountMap = new HashMap<>();
 
-        //3. 단어 카운팅
+        //2. 단어 카운팅
         for (String token : tokens) {
             if (token.length() <2) continue;
             if (STOP_WORDS.contains(token)) continue;
@@ -66,7 +65,7 @@ public class WordFrequencyService {
             wordCountMap.merge(token, 1, Integer::sum);
         }
 
-        //4. WordFrequency upsert
+        //3. WordFrequency upsert
         Long seqKeyword = keyWord.getSeqKeyword();
 
         for (Map.Entry<String, Integer> entry : wordCountMap.entrySet()) {
@@ -89,6 +88,7 @@ public class WordFrequencyService {
             wordFrequencyRepository.save(wf);
         }
 
+        //4. 분석 완료 표시
         contentDetail.setAnalyzedYn(YesNo.Y);
         contentDetailRepository.save(contentDetail);
     }

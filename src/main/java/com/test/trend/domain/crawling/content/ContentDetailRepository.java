@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ContentDetailRepository extends JpaRepository<ContentDetail, Long>{
 
-    List<ContentDetail> findByKeywordAndAnalyzedYn(Keyword keyword, YesNo analyzedYn);
+    List<ContentDetail> findByTargetUrl_KeywordAndAnalyzedYn(Keyword keyword, YesNo analyzedYn);
 
+    List<ContentDetail> findByAnalyzedYn(YesNo attr0);
 }
