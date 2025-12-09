@@ -7,6 +7,7 @@ public enum PaymentStatus {
     DONE("Toss 승인 완료"), 
     FAILED("결제 실패"),
     CANCELED("결제 취소됨"),
+    EXPIRED("결제 시도 후 만료됨"),
     PARTIAL_CANCELED("부분 취소됨");
 
     private final String description;

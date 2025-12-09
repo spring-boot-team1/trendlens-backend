@@ -61,6 +61,10 @@ public class Payment {
 		this.paymentStatus = paymentStatus.FAILED;
 		this.failReason = reason;
 	}
-	
+
+	public void updateStatus(PaymentStatus status) {
+		this.paymentStatus = status;
+	}
+
 }
 
