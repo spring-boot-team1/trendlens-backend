@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class BodyAnalysisRequestDTO {
 
-    private String username;
+    private String seqAccount;
     private String imageUrl;
     private BigDecimal heightCm;
     private BigDecimal weightKg;

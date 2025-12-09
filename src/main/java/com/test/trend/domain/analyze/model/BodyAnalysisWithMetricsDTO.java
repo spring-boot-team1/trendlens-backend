@@ -1,9 +1,6 @@
 package com.test.trend.domain.analyze.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -27,5 +24,9 @@ public class BodyAnalysisWithMetricsDTO {
     private BigDecimal legLengthCm;
     private BigDecimal torsoLengthCm;
 
+    @Setter
+    private Long seqBodyAnalysis;     // BodyAnalysis PK
+    @Setter
+    private Long seqBodyMetrics;      // BodyMetrics PK
 
 }
