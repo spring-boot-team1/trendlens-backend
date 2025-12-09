@@ -21,7 +21,7 @@ public class CustomAccountDetails implements UserDetails {
     //private final Account account; //주입
     private final String email;
     private final String role;
-    private final String nickname;
+    private final Long seqAccount;
     private final String password;
 
     /**

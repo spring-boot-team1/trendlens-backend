@@ -6,13 +6,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.jpa.repository.query.KeysetScrollDelegate;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 //1. JWTUtil 구현
@@ -49,7 +47,7 @@ public class JWTUtil {
      * @param expiredMs 토큰 만료 시간
      * @return JWT 문자열(header.payload.signature 형태)
      */
-    public String createJWT(Map<String, Object> claims, Long expiredMs){
+    public String createJWTString(Map<String, Object> claims, Long expiredMs){
         /* 
         claim(): 토큰의 페이로드에 사용자 정보를 저장
         issuedAt()/expiration(): 토큰 생성/만료 시간
@@ -69,47 +67,20 @@ public class JWTUtil {
 
     /**
      * 액세스 토큰 생성 메서드. claims를 map에 담아 createJWT() 메서드를 반환한다.
-     * @param seqAccount 계정정보 PK
-     * @param email 사용자 이메일
-     * @param role 사용자 권한
-     * @param provider OAuth2 제공자
-     * @param providerId OAuth2 제공자 ID
-     * @param seqAccountDetail 계정정보 상세 PK
-     * @param username 사용자 이름(실명)
-     * @param nickname 사용자 닉네임
-     * @param profilepic 프로필 사진
+     * @param claims claim들을 담은 Map
      * @return createJWT() 메서드
      */
-    public String createAccessToken(Long seqAccount, String email, String role, String provider, String providerId, Long seqAccountDetail, String username, String nickname, String profilepic) {
-        Map<String, Object> claims = new HashMap<>();
-        //map에 정보를 담기
-        claims.put("email", email);
-        claims.put("nickname", nickname);
-        claims.put("role", role);
-        claims.put("seqAccount", seqAccount);
-        claims.put("provider", provider);
-        claims.put("providerId", providerId);
-        claims.put("seqAccountDetail", seqAccountDetail);
-        claims.put("username", username);
-        claims.put("profilepic", profilepic);
-        System.out.println("JWTUtil >>>>> AccessToken에 담길 Claims: " + claims);
-        return createJWT(claims, accessExpiredMs);
+    public String createAccessToken(Map<String, Object> claims) {
+        return createJWTString(claims, accessExpiredMs);
     }
 
     /**
      * 리프레시 토큰 생성 메서드. claims를 map에 담아 createJWT() 메서드를 반환한다.
-     * @param seqAccount Account 테이블 기본키
-     * @param email 사용자 이메일
-     * @param role 사용자 권한
-     * @return 리프레시 토큰 JWT 문자열
+     * @param claims claim들을 담은 Map
+     * @return createJWT() 메서드
      */
-    public String createRefreshToken(Long seqAccount, String email, String role) {
-        Map<String, Object> claims = new HashMap<>();
-        //map에 정보를 담기
-        claims.put("seqAccount", seqAccount);
-        claims.put("email", email);
-        claims.put("role", role);
-        return createJWT(claims, refreshExpiredMs);
+    public String createRefreshToken(Map<String, Object> claims) {
+        return createJWTString(claims, refreshExpiredMs);
     }
 
     /**
@@ -156,12 +127,12 @@ public class JWTUtil {
     }
 
     /**
-     * Claims에서 사용자 닉네임을 꺼냄
+     * Claims에서 사용자 PK를 꺼냄
      * @param token JWT 문자열
      * @return 사용자 닉네임
      */
-    public String getNickname(String token) {
-        return getClaims(token).get("nickname", String.class);
+    public Long getSeqAccount(String token) {
+        return getClaims(token).get("seqAccount", Long.class);
     }
 
     /**
@@ -192,10 +163,13 @@ public class JWTUtil {
         }
     }
 
-    //TODO 구현 필요(Refresh Token에서 SeqAccount 꺼내기)
+    /**
+     * RefreshToken에서 사용자 PK(seqAccount)를 추출
+     * @param refreshToken 리프레시 토큰
+     * @return seqAccount(Long)
+     */
     public Long getUserIdFromRefresh(String refreshToken) {
         //refreshToken에서 seqAccount 꺼내오기
-        getClaims(refreshToken).get("seqAccount", String.class);
-        return 1L;
+        return getClaims(refreshToken).get("seqAccount", Long.class);
     }
 }

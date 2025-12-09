@@ -57,12 +57,13 @@ public class TestController {
         String token = header.replace("Bearer ", "");
 
         // 추가 Claim 파싱
-        Long seqAccount = jwtUtil.getClaim(token, "seqAccount", Long.class);
+        //Long seqAccount = jwtUtil.getClaim(token, "seqAccount", Long.class);
         String provider = jwtUtil.getClaim(token, "provider", String.class);
         String providerId = jwtUtil.getClaim(token, "providerId", String.class);
         Long seqAccountDetail = jwtUtil.getClaim(token, "seqAccountDetail", Long.class);
         String username = jwtUtil.getClaim(token, "username", String.class);
         String profilepic = jwtUtil.getClaim(token, "profilepic", String.class);
+        String nickname = jwtUtil.getClaim(token, "nickname", String.class);
 
         return """
         TestController >>>>> 로그인됨:
@@ -76,9 +77,9 @@ public class TestController {
         username = %s
         profilepic = %s""".formatted(
                 user.getEmail(),
-                user.getNickname(),
+                nickname,
                 user.getRole(),
-                seqAccount,
+                user.getSeqAccount(),
                 provider,
                 providerId,
                 seqAccountDetail,

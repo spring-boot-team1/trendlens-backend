@@ -1,17 +1,15 @@
 package com.test.trend.auth;
 
 import com.test.trend.domain.account.dto.CustomAccountDetails;
-import com.test.trend.domain.account.entity.Account;
-import com.test.trend.domain.account.entity.AccountDetail;
 import com.test.trend.domain.account.repository.AccountDetailRepository;
 import com.test.trend.domain.account.repository.AccountRepository;
-import com.test.trend.domain.account.service.TokenService;
+import com.test.trend.domain.account.service.RedisService;
+import com.test.trend.domain.account.service.util.ClaimsBuilderUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,7 +19,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 //2. LoginFilter 구현
 
@@ -34,7 +34,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AccountDetailRepository accountDetailRepository;
     private final AuthenticationManager authManager; //인증 담당
     private final JWTUtil jwtUtil; //토큰 발행 담당
-    private final TokenService tokenService;
+    private final RedisService redisService;
+    private final ClaimsBuilderUtil claimsBuilderUtil;
 
     // Redis에 리프레시 토큰 저장할 때에는 어떻게 구현하는지??
     //private final RefreshTokenRepository refreshTokenRepository;
@@ -52,12 +53,14 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
             AccountDetailRepository accountDetailRepository,
             AuthenticationManager authManager,
             JWTUtil jwtUtil,
-            TokenService tokenService) {
+            RedisService redisService,
+            ClaimsBuilderUtil claimsBuilderUtil) {
         this.accountRepository = accountRepository;
         this.accountDetailRepository = accountDetailRepository;
         this.authManager = authManager;
         this.jwtUtil = jwtUtil;
-        this.tokenService = tokenService;
+        this.redisService = redisService;
+        this.claimsBuilderUtil = claimsBuilderUtil;
     }
 
     /**
@@ -108,38 +111,23 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
+        Long seqAccount = customAccountDetails.getSeqAccount();
         //닉네임 꺼내오기
-        String nickname = customAccountDetails.getNickname();
+        //String nickname = customAccountDetails.getNickname();
 
-        Account account = accountRepository.findByEmail(email);
-        AccountDetail accountDetail = accountDetailRepository.findByAccount_SeqAccount(account.getSeqAccount());
-
-
-        //JWT Access Token 생성
-        String accessToken = jwtUtil.createAccessToken(
-                account.getSeqAccount(),
-                email,
-                role,
-                account.getProvider(),
-                account.getProviderId(),
-                accountDetail.getSeqAccountDetail(),
-                accountDetail.getUsername(),
-                nickname,
-                accountDetail.getProfilepic()
-        );
+        Map<String, Object> accessClaims = claimsBuilderUtil.buildAccessClaims(seqAccount);
+        String accessToken = jwtUtil.createAccessToken(accessClaims);
 
         // 액세스토큰을 클라이언트에게 전달
         response.setHeader("Authorization", "Bearer " + accessToken);
 
         //4. 로그인 성공 시 RefreshToken 발급 & 저장
         //JWT Refresh Token 생성
-        String refreshToken = jwtUtil.createRefreshToken(
-                account.getSeqAccount(),
-                email,
-                role
-        );
+        Map<String, Object> refreshClaims = new HashMap<>();
+        refreshClaims.put("seqAccount", customAccountDetails.getSeqAccount());
+        String refreshToken = jwtUtil.createRefreshToken(refreshClaims);
         //refreshtoken을 Redis에 저장
-        tokenService.saveRefreshToken(account.getSeqAccount(), refreshToken, jwtUtil.getRefreshExpiredMs());
+        redisService.saveRefreshToken(seqAccount, refreshToken, jwtUtil.getRefreshExpiredMs());
 
         // 리프레시토큰을 클라이언트에게 전달
         //헤더(임시)

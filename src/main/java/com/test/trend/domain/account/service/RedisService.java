@@ -1,6 +1,5 @@
 package com.test.trend.domain.account.service;
 
-import com.nimbusds.oauth2.sdk.token.RefreshToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -12,7 +11,7 @@ import java.time.Duration;
 /**
  * refresh token에 대한 조회, 저장, 삭제 메서드를 담은 서비스 계층
  */
-public class TokenService {
+public class RedisService {
     private final StringRedisTemplate redisTemplate;
 
     /**

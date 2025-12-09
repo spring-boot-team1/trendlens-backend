@@ -2,6 +2,6 @@
 -- GET test
 -- DEL test
 
--- keys *
--- get RT:2
--- ttl RT:2
+keys *
+get RT:2
+ttl RT:2

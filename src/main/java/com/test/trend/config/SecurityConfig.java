@@ -5,9 +5,9 @@ import com.test.trend.auth.JWTUtil;
 import com.test.trend.auth.LoginFilter;
 import com.test.trend.domain.account.repository.AccountDetailRepository;
 import com.test.trend.domain.account.repository.AccountRepository;
-import com.test.trend.domain.account.service.TokenService;
+import com.test.trend.domain.account.service.RedisService;
+import com.test.trend.domain.account.service.util.ClaimsBuilderUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +32,8 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final AccountRepository accountRepository;
     private final AccountDetailRepository accountDetailRepository;
-    private final TokenService tokenService;
+    private final RedisService redisService;
+    private final ClaimsBuilderUtil claimsBuilderUtil;
 
     //OAuth2가 아닐 때 사용하기 위한 BCryptPasswordEncoder
     @Bean
@@ -81,7 +82,8 @@ public class SecurityConfig {
                 accountDetailRepository,
                 manager(configuration),
                 jwtUtil,
-                tokenService
+                redisService,
+                claimsBuilderUtil
         ), UsernamePasswordAuthenticationFilter.class);
 
 
