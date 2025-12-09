@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.test.trend.domain.payment.payment.entity.Payment;
 import com.test.trend.domain.payment.payment.repository.PaymentRepository;
+import com.test.trend.enums.PaymentStatus;
 
 @SpringBootTest
 @Transactional
@@ -24,9 +25,9 @@ public class PaymentRepositoryTest {
 		Payment payment = Payment.builder()
 				.seqAccount(1L)
 				.seqUserSub(5L)
-				.amount(9900)
+				.amount(9900L)
 				.paymentMethod("CARD")
-				.paymentStatus("REQUESTED")
+				.paymentStatus(PaymentStatus.REQUESTED)
 				.requestTime(LocalDateTime.now())
 				.build();
 		
@@ -42,9 +43,9 @@ public class PaymentRepositoryTest {
                 Payment.builder()
                         .seqAccount(1L)
                         .seqUserSub(5L)
-                        .amount(9900)
+                        .amount(9900L)
                         .paymentMethod("CARD")
-                        .paymentStatus("REQUESTED")
+                        .paymentStatus(PaymentStatus.REQUESTED)
                         .requestTime(LocalDateTime.now())
                         .build()
         );

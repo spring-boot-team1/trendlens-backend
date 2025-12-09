@@ -2,6 +2,11 @@ package com.test.trend.domain.payment.subscription.dto;
 
 import java.time.LocalDateTime;
 
+import com.test.trend.enums.SubscriptionStatus;
+import com.test.trend.enums.YesNo;
+
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,8 +26,11 @@ public class UserSubscriptionDTO {
 	private LocalDateTime endDate;
 	private LocalDateTime nextBillingDate;
 	
-	private String autoRenewYn;
-	private String status;
+	@Enumerated(EnumType.STRING)
+	private YesNo autoRenewYn;
+	
+	@Enumerated(EnumType.STRING)
+	private SubscriptionStatus status;
 	private String cancelReason;
 	
 	private LocalDateTime createdAt;

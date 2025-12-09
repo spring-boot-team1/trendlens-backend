@@ -1,13 +1,18 @@
 package com.test.trend.domain.payment.subscription.service;
 
+import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.test.trend.domain.payment.payment.entity.Payment;
 import com.test.trend.domain.payment.subscription.dto.UserSubscriptionDTO;
 import com.test.trend.domain.payment.subscription.entity.UserSubscription;
 import com.test.trend.domain.payment.subscription.mapper.UserSubscriptionMapper;
 import com.test.trend.domain.payment.subscription.repository.SubscriptionPlanRepository;
 import com.test.trend.domain.payment.subscription.repository.UserSubscriptionRepository;
+import com.test.trend.enums.SubscriptionStatus;
+import com.test.trend.enums.YesNo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,11 +38,24 @@ public class UserSubscriptionService {
 	public UserSubscriptionDTO startSubscription(UserSubscriptionDTO dto) {
 		
 		//구독 플랜 유효성 체크
-		planRepository.findById(dto.getSeqSubscriptionPlan()).orElseThrow(() -> new IllegalArgumentException("Subscription plan not found"));
+		planRepository.findById(dto.getSeqSubscriptionPlan())
+				.orElseThrow(() -> new IllegalArgumentException("Subscription plan not found"));
 		
-		UserSubscription entity = mapper.toEntity(dto);
+		// 기본 설정
+        LocalDateTime now = LocalDateTime.now();
+		
+		UserSubscription entity = UserSubscription.builder()
+				.seqAccount(dto.getSeqAccount())
+				.seqSubscriptionPlan(dto.getSeqSubscriptionPlan())
+				.startDate(now)
+                .endDate(now.plusMonths(1))
+                .nextBillingDate(now.plusMonths(1))
+                .autoRenewYn(YesNo.Y)
+                .status(SubscriptionStatus.ACTIVE)
+                .createdAt(now)
+				.build();
+		
 		UserSubscription saved = userRepository.save(entity); 
-		
 		return mapper.toDto(saved);
 	}
 	
@@ -51,23 +69,44 @@ public class UserSubscriptionService {
 	public UserSubscriptionDTO cancelSubscription(Long seqUserSub, String reason) {
 		UserSubscription sub = userRepository.findById(seqUserSub)
 				.orElseThrow(() -> new IllegalArgumentException("Subscription not found"));
-
-		UserSubscription updated = UserSubscription.builder()
-				.seqUserSub(sub.getSeqUserSub())
-				.seqAccount(sub.getSeqAccount())
-                .seqSubscriptionPlan(sub.getSeqSubscriptionPlan())
-                .startDate(sub.getStartDate())
-                .endDate(sub.getEndDate())
-                .nextBillingDate(sub.getNextBillingDate())
-                .autoRenewYn("N")
-                .status("CANCELLED")
-                .cancelReason(reason)
-                .createdAt(sub.getCreatedAt())
-				.build();
 		
-		userRepository.save(updated);
-		return mapper.toDto(updated);
+		return mapper.toDto(sub);
 	}
+	
+	 /**
+     * 결제 승인 시 구독 갱신 또는 생성
+     */
+	public void processPayment(Payment payment) {
+
+	    Long seqAccount = payment.getSeqAccount();
+
+	    // ACTIVE 구독 찾기
+	    UserSubscription subscription = userRepository
+		        .findActiveBySeqAccount(seqAccount)
+		        .orElseGet(() -> createNewSubscription(seqAccount));
+
+	    // 다음 결제일 +1개월
+	    subscription.extendBillingDate();
+	}
+	
+	/** 활성 구독이 없을 경우 새로 생성 */
+    private UserSubscription createNewSubscription(Long seqAccount) {
+
+        LocalDateTime now = LocalDateTime.now();
+
+        UserSubscription sub = UserSubscription.builder()
+                .seqAccount(seqAccount)
+                .seqSubscriptionPlan(1L) // 기본 플랜? 필요 시 외부 파라미터
+                .startDate(now)
+                .endDate(now.plusMonths(1))
+                .nextBillingDate(now.plusMonths(1))
+                .autoRenewYn(YesNo.Y)
+                .status(SubscriptionStatus.ACTIVE)
+                .createdAt(now)
+                .build();
+
+        return userRepository.save(sub);
+    }
 	
 }
 

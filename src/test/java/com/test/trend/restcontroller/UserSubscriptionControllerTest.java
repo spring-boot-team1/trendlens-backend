@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.test.trend.domain.payment.subscription.api.UserSubscriptionController;
 import com.test.trend.domain.payment.subscription.dto.UserSubscriptionDTO;
 import com.test.trend.domain.payment.subscription.service.UserSubscriptionService;
+import com.test.trend.enums.SubscriptionStatus;
 
 @WebMvcTest(UserSubscriptionController.class)
 @AutoConfigureMockMvc(addFilters = false) // Security 필터 제거 (403 방지)
@@ -45,7 +46,7 @@ class UserSubscriptionControllerTest {
 				.seqAccount(100L)
 				.seqSubscriptionPlan(10L)
 				.startDate(LocalDateTime.now())
-				.status("ACTIVE")
+				.status(SubscriptionStatus.ACTIVE)
 				.build();
 	}
 	
@@ -88,7 +89,7 @@ class UserSubscriptionControllerTest {
 				.seqSubscriptionPlan(10L)
 				.startDate(LocalDateTime.now().minusDays(5))
 				.endDate(LocalDateTime.now())
-				.status("CANCELED")
+				.status(SubscriptionStatus.CANCELED)
 				.cancelReason("TEST_REASON")
 				.build();
 				

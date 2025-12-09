@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.test.trend.domain.payment.subscription.entity.UserSubscription;
 import com.test.trend.domain.payment.subscription.repository.UserSubscriptionRepository;
+import com.test.trend.enums.SubscriptionStatus;
+import com.test.trend.enums.YesNo;
 
 @SpringBootTest
 @Transactional
@@ -27,8 +29,8 @@ public class UserSubscriptionRepositoryTest {
 				.startDate(LocalDateTime.now())
 				.endDate(LocalDateTime.now().plusMonths(1))
 				.nextBillingDate(LocalDateTime.now().plusMonths(1))
-				.autoRenewYn("Y")
-				.status("ACTIVE")
+				.autoRenewYn(YesNo.Y)
+				.status(SubscriptionStatus.ACTIVE)
 				.createdAt(LocalDateTime.now())
 				.build();
 		

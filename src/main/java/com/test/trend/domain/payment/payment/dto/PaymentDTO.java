@@ -2,6 +2,10 @@ package com.test.trend.domain.payment.payment.dto;
 
 import java.time.LocalDateTime;
 
+import com.test.trend.enums.PaymentStatus;
+
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,9 +21,11 @@ public class PaymentDTO {
     private Long seqAccount;
     private Long seqUserSub;
 
-    private Integer amount;
+    private Long amount;
     private String paymentMethod;
-    private String paymentStatus;
+    
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
 
     private LocalDateTime requestTime;
     private LocalDateTime approveTime;

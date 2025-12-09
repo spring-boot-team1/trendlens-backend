@@ -1,5 +1,6 @@
 package com.test.trend.domain.payment.payment.api;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.test.trend.domain.payment.payment.dto.PaymentDTO;
+import com.test.trend.domain.payment.payment.dto.toss.TossPaymentConfirmRequest;
 import com.test.trend.domain.payment.payment.service.PaymentService;
 
 import lombok.RequiredArgsConstructor;
@@ -20,11 +22,21 @@ import lombok.RequiredArgsConstructor;
  * 비즈니스 로직과 데이터 변환은 모두 Service 계층에서 담당한다.
  */
 @RestController
-@RequestMapping("/api/v1/payment")
+@RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 
 	private final PaymentService service;
+	
+	/**
+     * Toss 결제 승인 API
+     * - 클라이언트(Toss SDK)에서 받은 paymentKey, orderId, amount를 기반으로 승인 처리
+     */
+	@PostMapping("/confirm")
+	public ResponseEntity<PaymentDTO> confirmPayment(@RequestBody TossPaymentConfirmRequest request) {
+		PaymentDTO result = service.confirmTossPayment(request);
+		return ResponseEntity.ok(result);
+	}
 	
 	/**
 	 * 결제 요청을 기록한다.

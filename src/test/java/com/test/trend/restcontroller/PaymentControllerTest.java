@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.test.trend.domain.payment.payment.api.PaymentController;
 import com.test.trend.domain.payment.payment.dto.PaymentDTO;
 import com.test.trend.domain.payment.payment.service.PaymentService;
+import com.test.trend.enums.PaymentStatus;
 
 @WebMvcTest(PaymentController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -43,8 +44,8 @@ class PaymentControllerTest {
 		return PaymentDTO.builder()
 				.seqPayment(1L)
 				.seqAccount(100L)
-				.amount(9900)
-				.paymentStatus("REQUESTED")
+				.amount(9900L)
+				.paymentStatus(PaymentStatus.REQUESTED)
 				.requestTime(LocalDateTime.now())
 				.build();
 	}
@@ -57,7 +58,7 @@ class PaymentControllerTest {
 		
 		PaymentDTO request = PaymentDTO.builder()
 				.seqAccount(100L)
-				.amount(9900)
+				.amount(9900L)
 				.build();
 		
 		PaymentDTO response = createMockDTO();
@@ -84,8 +85,8 @@ class PaymentControllerTest {
 		PaymentDTO approved = PaymentDTO.builder()
 				.seqPayment(1L)
 				.seqAccount(100L)
-				.amount(9900)
-				.paymentStatus("APPROVED")
+				.amount(9900L)
+				.paymentStatus(PaymentStatus.APPROVED)
 				.approveTime(LocalDateTime.now())
 				.build();
 
@@ -108,8 +109,8 @@ class PaymentControllerTest {
 		PaymentDTO failed = PaymentDTO.builder()
 				.seqPayment(1L)
 				.seqAccount(100L)
-				.amount(9900)
-				.paymentStatus("FAILED")
+				.amount(9900L)
+				.paymentStatus(PaymentStatus.FAILED)
 				.failReason("CARD_ERROR")
 				.cancelTime(LocalDateTime.now())
 				.build();
