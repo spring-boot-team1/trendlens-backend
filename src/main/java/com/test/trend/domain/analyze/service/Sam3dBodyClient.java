@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 @Slf4j
 public class Sam3dBodyClient {
 
-    private static final String BASE_URL = "";
+    private static final String BASE_URL = "https://1yp9ttmxso638f-8000.proxy.runpod.net";
     private final WebClient webClient;
 
     public Sam3dBodyClient(WebClient.Builder webClientBuilder) {
@@ -51,7 +51,7 @@ public class Sam3dBodyClient {
 
             builder.part("height", heightCm.toPlainString());
             builder.part("weight", weightKg.toPlainString());
-            builder.part("seq_account", seqAccount);
+            builder.part("seqAccount", seqAccount);
             builder.part("gender", gender);
 
             Sam3dBodyApiResponse response = webClient.post()

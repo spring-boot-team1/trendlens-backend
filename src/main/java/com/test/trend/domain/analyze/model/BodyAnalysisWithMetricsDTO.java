@@ -28,5 +28,8 @@ public class BodyAnalysisWithMetricsDTO {
     private Long seqBodyAnalysis;     // BodyAnalysis PK
     @Setter
     private Long seqBodyMetrics;      // BodyMetrics PK
-
+    @Setter
+    private String promptUsed;
+    @Setter
+    private String aiResult;
 }

@@ -1,8 +1,6 @@
 package com.test.trend.domain.analyze.util;
 
 
-import java.math.BigDecimal;
-
 public class FashionPromptFactory {
 
     public static String buildFashionPrompt(String metricsJson) {

@@ -2,10 +2,13 @@ package com.test.trend.domain.analyze.service;
 
 import com.test.trend.domain.analyze.entity.BodyAnalysis;
 import com.test.trend.domain.analyze.entity.BodyMetrics;
+import com.test.trend.domain.analyze.entity.BodyRecommendation;
 import com.test.trend.domain.analyze.model.BodyAnalysisWithMetricsDTO;
+import com.test.trend.domain.analyze.model.FashionRecommendDTO;
 import com.test.trend.domain.analyze.model.Sam3dBodyApiResponse;
 import com.test.trend.domain.analyze.repository.BodyAnalysisRepository;
 import com.test.trend.domain.analyze.repository.BodyMetricsRepository;
+import com.test.trend.domain.analyze.repository.BodyRecommendationRepository;
 import com.test.trend.domain.analyze.util.BodyAnalyzeMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +29,8 @@ public class BodyAnalyszeService {
     private final BodyAnalyzeMapper bodyAnalyzeMapper;
     private final BodyAnalysisRepository bodyAnalysisRepository;
     private final BodyMetricsRepository bodyMetricsRepository;
+    private final BodyRecommendationRepository bodyRecommendationRepository;
+    private final FashionRecommendClient fashionRecommendClient;
 
     /**
      * 1. 이미지 S3 업로드
@@ -80,6 +85,22 @@ public class BodyAnalyszeService {
 
             log.info("✅ 체형 분석 + 메트릭스 저장 완료: seqBodyAnalysis={}, seqBodyMetrics={}",
                     analysis.getSeqBodyAnalysis(), metrics.getSeqBodyMetrics());
+
+            FashionRecommendDTO fashionRecommendDTO = fashionRecommendClient.AiResult(dto);
+
+            dto.setPromptUsed(fashionRecommendDTO.getPromptUsed());
+            dto.setAiResult(fashionRecommendDTO.getAiResult());
+
+            BodyRecommendation recommendation = BodyRecommendation.builder()
+                    .bodyMetrics(savedMetrics)
+                    .promptUsed(fashionRecommendDTO.getPromptUsed())
+                    .aiResult(fashionRecommendDTO.getAiResult())
+                    .build();
+
+            BodyRecommendation savedRec = bodyRecommendationRepository.save(recommendation);
+
+            log.info("🧠 패션 추천 저장 완료: seqBodyRecommendation={}",
+                    savedRec.getSeqBodyRecommendation());
 
             return dto;
 

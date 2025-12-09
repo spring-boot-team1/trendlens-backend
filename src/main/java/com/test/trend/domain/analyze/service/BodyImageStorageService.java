@@ -18,7 +18,7 @@ public class BodyImageStorageService {
 
     private final S3Template s3Template;
 
-    @Value("&{spring.cloud.aws.s3.bucket}")
+    @Value("${spring.cloud.aws.s3.bucket}")
     private String bucketName;
 
     private String buildKey(Long seqAccount, String originFilename){
