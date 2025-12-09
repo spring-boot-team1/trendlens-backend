@@ -5,9 +5,6 @@ package com.test.trend.auth;
 // 이 사용자를 인증된 사용자로 인식하게 만든다.
 
 import com.test.trend.domain.account.dto.CustomAccountDetails;
-import com.test.trend.domain.account.entity.Account;
-import com.test.trend.domain.account.entity.AccountDetail;
-import com.test.trend.domain.account.mapper.AccountMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -59,11 +56,11 @@ public class JWTFilter extends OncePerRequestFilter {
         String token = authorization.split(" ")[1]; //Bearer 접두어 제거
         //token에서 정보를 추출 -> Spring Security 인증 객체 생성
         String email = null;
-        String nickname = null;
+        Long seqAccount = null;
         String role = null;
         try {
             email = jwtUtil.getEmail(token);
-            nickname = jwtUtil.getNickname(token);
+            seqAccount = jwtUtil.getSeqAccount(token);
             role = jwtUtil.getRole(token);
         } catch (Exception e) {
             System.out.println("JWTFilter >>>>> Unauthorized");
@@ -79,7 +76,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
         CustomAccountDetails customAccountDetails = CustomAccountDetails.builder()
                 .email(email)
-                .nickname(nickname)
+                .seqAccount(seqAccount)
                 .role(role)
                 .build();
 

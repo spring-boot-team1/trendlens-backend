@@ -37,7 +37,7 @@ public class CustomAccountDetailsService implements UserDetailsService {
             return CustomAccountDetails.builder()
                     .email(account.getEmail())
                     .role(account.getRole().name())
-                    .nickname(account.getAccountDetail().getNickname())
+                    .seqAccount(account.getSeqAccount())
                     .password(account.getPassword())
                     .build();
         } else {

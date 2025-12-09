@@ -5,14 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.test.trend.domain.account.dto.RegisterRequestDTO;
 import com.test.trend.domain.account.service.AccountService;
 import com.test.trend.domain.account.service.AuthService;
-import com.test.trend.domain.account.service.TokenService;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Valid;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
-import org.antlr.v4.runtime.Token;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -80,8 +78,13 @@ public class AccountController {
     @PostMapping("/api/vi/reissue")
     public ResponseEntity<?> reissue(@CookieValue(value = "refreshToken", required = false) String refreshToken, HttpServletResponse response) {
         String newAccessToken = authService.reissue(refreshToken, response);
-        return null;
+        return ResponseEntity.ok().header("Authorization", "Bearer " + newAccessToken).build();
     }
 
+    @PostMapping("/api/v1/logout")
+    public ResponseEntity<?> logout() {
+
+        return null;
+    }
 
 }
