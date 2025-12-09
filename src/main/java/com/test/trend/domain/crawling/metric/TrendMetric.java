@@ -1,5 +1,6 @@
 package com.test.trend.domain.crawling.metric;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.test.trend.domain.crawling.keyword.Keyword;
@@ -16,9 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "TrendMetric")
@@ -30,6 +29,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class TrendMetric {
 	
 	@Id
@@ -40,7 +41,7 @@ public class TrendMetric {
 	@JoinColumn(name = "seqKeyword")
 	private Keyword keyword;
 	
-	private LocalDateTime baseDate;
+	private LocalDate baseDate;
 	private Double ratio;
 	
 	@Enumerated(EnumType.STRING)
@@ -49,6 +50,6 @@ public class TrendMetric {
 	private String rawJson;
 	
 	private LocalDateTime createdAt;
-	
+
 
 }

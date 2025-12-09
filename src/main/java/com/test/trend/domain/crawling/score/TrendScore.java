@@ -1,5 +1,6 @@
 package com.test.trend.domain.crawling.score;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.test.trend.domain.crawling.keyword.Keyword;
@@ -13,9 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "TrendScore")
@@ -27,6 +26,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class TrendScore {
 	
 	@Id
@@ -37,7 +38,7 @@ public class TrendScore {
 	@JoinColumn(name = "seqKeyword")
 	private Keyword keyword;
 	
-	private LocalDateTime baseDate;
+	private LocalDate baseDate;
 	private Double scoreA;
 	private Double scoreB;
 	private Double finalScore;

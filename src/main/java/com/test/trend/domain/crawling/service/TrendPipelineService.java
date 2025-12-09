@@ -6,6 +6,7 @@ import com.test.trend.domain.crawling.freq.WordFrequencyService;
 import com.test.trend.domain.crawling.keyword.Keyword;
 import com.test.trend.domain.crawling.keyword.KeywordRepository;
 import com.test.trend.domain.crawling.keyword.RisingKeywordDto;
+import com.test.trend.domain.crawling.score.TrendScoreService;
 import com.test.trend.domain.crawling.targeturl.SearchResultDto;
 import com.test.trend.domain.crawling.targeturl.TargetUrl;
 import com.test.trend.domain.crawling.targeturl.TargetUrlRepository;
@@ -29,6 +30,8 @@ public class TrendPipelineService {
     private final KeywordRepository keywordRepo;
     private final TargetUrlRepository targetUrlRepo;
     private final WordFrequencyService wordFrequencyService;
+    private final DataLabApiService dataLabApiService;
+    private final TrendScoreService trendScoreService;
 
     public void runCrawlingFlow() {
 
@@ -63,11 +66,23 @@ public class TrendPipelineService {
             });
 
             try {
+                dataLabApiService.fetchAndSaveTrend(seqKeyword);
+            } catch (Exception e){
+                System.out.println(">>> [DataLab] 지표 수집 실패: " + e.getMessage());
+            }
+
+            try {
                 Thread.sleep(5000);
             } catch (Exception e) {
             }
         }
         System.out.println(">>>>[PipeLine] 모든 작업 완료");
+
+        try {
+            trendScoreService.recalcTodayScores();
+        } catch (Exception e) {
+            System.out.println("[TrendScore] 계산 실패" + e.getMessage());
+        }
     }
 
     private void processSingleContent(Keyword keywordEntity, SearchResultDto dto) {

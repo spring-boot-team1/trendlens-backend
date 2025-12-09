@@ -19,7 +19,7 @@ import java.util.Map;
 @Service
 public class SearchApiService {
 
-    @Value("${naver.client-id}") // application.yml 설정
+    @Value("${naver.client-id}")
     private String clientId;
 
     @Value("${naver.client-secret}")
