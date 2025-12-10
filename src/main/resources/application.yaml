@@ -6,6 +6,15 @@ spring:
   config:
     import: "classpath:secret.yaml"
 
+  #HikariCP Pool 개수 조절
+  datasource:
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 2
+      max-lifetime: 900000
+      idle-timeout: 300000
+      connection-timeout: 30000
+
   # JPA 설정
   jpa:
     database: oracle
