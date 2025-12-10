@@ -39,7 +39,7 @@ public class RedisService {
     }
 
     /**
-     * 
+     * RefreshToken 삭제
      * @param seqAccount Account 테이블 PK
      * @return 삭제 유무
      */

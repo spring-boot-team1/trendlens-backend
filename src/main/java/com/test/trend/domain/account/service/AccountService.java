@@ -8,11 +8,14 @@ import com.test.trend.domain.account.mapper.AccountMapper;
 import com.test.trend.domain.account.repository.AccountDetailRepository;
 import com.test.trend.domain.account.repository.AccountRepository;
 import com.test.trend.domain.account.service.util.ServiceUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.ResponseCache;
 import java.time.LocalDate;
 
 @Service
@@ -25,6 +28,7 @@ public class AccountService {
     private final AccountMapper accountMapper;
     private final AccountDetailMapper accountDetailMapper;
     private final ServiceUtil serviceUtil;
+    private final RedisService redisService;
 
     @Transactional
     public void signup(RegisterRequestDTO dto) {
@@ -72,5 +76,19 @@ public class AccountService {
         }
 
         return key;
+    }
+
+    public void logout(Long seqAccount, HttpServletResponse response) {
+        //refreshToken 삭제
+        redisService.deleteRefreshToken(seqAccount);
+        // refreshtoken 쿠키삭제
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+//                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 }
