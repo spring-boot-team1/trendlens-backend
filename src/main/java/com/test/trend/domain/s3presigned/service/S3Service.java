@@ -5,8 +5,11 @@ import com.test.trend.domain.s3presigned.dto.PresignedURLResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 
 import java.time.Duration;
@@ -52,5 +55,36 @@ public class S3Service {
 
         return new PresignedURLResponse(presignedPutObjectRequest.url().toString(), finalURL);
     }
+
+    /**
+     * 이미 S3에 올라가 있는 객체를 조회하기 위한 presigned GET URL 생성
+     *
+     * @param objectKey 예: "uploads/analyze/mesh-photo/1/xxxx.obj"
+     * @param duration  URL 유효기간 (예: Duration.ofMinutes(10))
+     * @return          브라우저/three.js에서 바로 GET 할 수 있는 URL
+     *
+     */
+     public String createGetPresigedUrl(String objectKey, Duration duration){
+         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                 .bucket(bucket)
+                 .key(objectKey)
+                 .build();
+
+         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                 .signatureDuration(duration)
+                 .getObjectRequest(getObjectRequest)
+                 .build();
+
+         PresignedGetObjectRequest presigned = presigner.presignGetObject(presignRequest);
+         return presigned.url().toString();
+     }
+
+    /**
+     * 10분짜리 GET presigned URL
+     */
+    public String createGetPresignedUrl(String objectKey){
+        return createGetPresigedUrl(objectKey, Duration.ofMinutes(10));
+    }
+
 
 }
