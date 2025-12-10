@@ -1,4 +1,4 @@
-package com.test.trend.domain.common.dto;
+package com.test.trend.domain.s3presigned.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
