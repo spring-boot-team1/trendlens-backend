@@ -49,6 +49,8 @@ public class BodyAnalyszeService {
         try {
             String imageUrl = bodyImageStorageService.uploadBodyPhoto(seqAccount, imageFile);
 
+            String imageUrlForView = bodyImageStorageService.convertS3UriToUrl(imageUrl);
+
             Sam3dBodyApiResponse apiResponse = sam3dBodyClient.analyzeBody(
                     imageFile,
                     heightCm,
@@ -60,10 +62,15 @@ public class BodyAnalyszeService {
             Sam3dBodyApiResponse.Data data = apiResponse.getData();
             Sam3dBodyApiResponse.Metrics m = data.getMetrics();
 
+            String meshUrl = data.getMeshUrl();
+            String meshUrlForview = meshUrl != null
+                    ? bodyImageStorageService.convertS3UriToUrl(meshUrl)
+                    : null;
+
             BodyAnalysisWithMetricsDTO dto = BodyAnalysisWithMetricsDTO.builder()
                     .seqAccount(seqAccount)
-                    .imageUrl(imageUrl)
-                    .meshUrl(data.getMeshUrl())
+                    .imageUrl(imageUrlForView)
+                    .meshUrl(meshUrlForview)
                     .heightCm(m.getHeightCm())
                     .weightKg(m.getWeightKg())
                     .bmi(m.getBmi())
