@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -83,8 +84,8 @@ public class AccountController {
 
     @PostMapping("/api/v1/logout")
     public ResponseEntity<?> logout() {
-
-        return null;
+        
+        return ResponseEntity.ok(Map.of("message", "logout success"));
     }
 
 }
