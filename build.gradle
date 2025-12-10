@@ -71,6 +71,10 @@ dependencies {
     implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.4.2")
     // S3 연동용 스타터
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+
+    //geminiAI API
+    implementation("com.google.genai:google-genai:1.0.0")
+
 }
 
 tasks.named('test') {
