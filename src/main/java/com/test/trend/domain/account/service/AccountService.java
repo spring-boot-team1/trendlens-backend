@@ -1,6 +1,5 @@
 package com.test.trend.domain.account.service;
 
-import com.test.trend.domain.account.dto.AccountDetailDTO;
 import com.test.trend.domain.account.dto.RegisterRequestDTO;
 import com.test.trend.domain.account.entity.Account;
 import com.test.trend.domain.account.entity.AccountDetail;
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -53,43 +51,6 @@ public class AccountService {
         accountRepository.save(account);
         accountDetailRepository.save(accountDetail);
     }
-//    @Transactional
-//    public void signup(RegisterRequestDTO dto, MultipartFile image) {
-//        //이메일 중복검사
-//        validateEmail(dto.getEmail());
-//
-//        //비밀번호 암호화
-//        String encodedPW = passwordEncoder.encode(dto.getPassword());
-//
-//        //생년월일 유효성검사 및 YYYY-MM-DD 형태로 파싱
-//        LocalDate birthday = serviceUtil.parseAndValidateBirthday(dto.getBirthday());
-//
-//        //전화번호 유효성검사 및 000-0000-0000 형태로 파싱
-//        String phonenum = serviceUtil.parseandValidatePhoneNum(dto.getPhonenum());
-//
-//        //이미지 저장
-//        serviceUtil.validateFileSize(image);
-//        serviceUtil.validateImageFile(image);
-//
-//        String imagePath = null;
-//        if (image != null && !image.isEmpty()) {
-//            imagePath = serviceUtil.saveProfileImage(image);
-//        }
-//
-//        //DTO - 엔티티 변환(Mapper 사용)
-//        // registerRequestDTO를 Account엔티티로 변환
-//        Account account = accountMapper.toEntity(dto, encodedPW);
-//
-//        //registerrequestdto를 AccountDetailDTO로 변환
-//        AccountDetailDTO accountDetailDTO= accountDetailMapper.fromRegisterDTO(dto);
-//        // AccountDetailDTO를 AccountDetail 엔티티로 변환
-//        AccountDetail accountDetail = accountDetailMapper.toEntity(accountDetailDTO, account, imagePath, birthday, phonenum);
-//
-//        // DB 저장
-//        accountRepository.save(account);
-//        accountDetailRepository.save(accountDetail);
-//
-//    }
 
     private void validateEmail(String email) {
         if (accountRepository.existsByEmail(email)) {
@@ -97,4 +58,19 @@ public class AccountService {
         }
     }
 
+    public String getProfileKey(Long seqAccount) {
+        //DB 조회
+        Account account = accountRepository.findBySeqAccount(seqAccount);
+
+        if (account == null) {
+            throw new RuntimeException("계정을 찾을 수 없습니다.");
+        }
+        String key = account.getAccountDetail().getProfilepic();
+        System.out.println("AccountService >>>>> getProfileKey : key = " + key);
+        if(key==null ||key.isBlank()){
+            return "uploads/profilepic/8f90e5a7-3519-4a58-b8ea-a91a41e74bd8.png"; //기본 프로필 사진
+        }
+
+        return key;
+    }
 }

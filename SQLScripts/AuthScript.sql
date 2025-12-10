@@ -38,7 +38,7 @@ ALTER TABLE AccountDetail ADD CONSTRAINT "FK_Account_TO_AccountDetail" FOREIGN K
 
 ALTER TABLE AccountDetail MODIFY profilepic varchar2(500);
 ALTER TABLE AccountDetail MODIFY profilepic varchar2(500) DEFAULT
-'https://trendlens.s3.ap-northeast-2.amazonaws.com/uploads/profilepic/8f90e5a7-3519-4a58-b8ea-a91a41e74bd8.png';
+'uploads/profilepic/8f90e5a7-3519-4a58-b8ea-a91a41e74bd8.png';
 
 select * from Account order by seqAccount;
 select * from AccountDetail order by seqAccountDetail;
@@ -51,5 +51,5 @@ delete from AccountDetail where seqAccountDetail between 3 and 8;
 delete from Account where seqAccount between 3 and 8;
 commit;
 
-update ACCOUNTDETAIL SET profilepic='https://trendlens.s3.ap-northeast-2.amazonaws.com/uploads/profilepic/8f90e5a7-3519-4a58-b8ea-a91a41e74bd8.png' where seqAccountDetail between 1 and 23;
+update ACCOUNTDETAIL SET profilepic='uploads/profilepic/8f90e5a7-3519-4a58-b8ea-a91a41e74bd8.png' where seqAccountDetail between 1 and 23;
 commit;
