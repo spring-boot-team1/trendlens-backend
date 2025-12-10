@@ -1,0 +1,72 @@
+spring:
+  application:
+    name: trend
+
+  # JPA 설정
+  jpa:
+    database: oracle
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+        dialect: org.hibernate.dialect.OracleDialect
+
+  # JWT 설정 (환경변수로 받음)
+  jwt:
+    secret: ${JWT_SECRET}
+
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    url: ${DB_URL}
+
+  # Redis 설정
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
+  # AWS 설정
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      region:
+        static: ${AWS_REGION}
+      s3:
+        bucket: ${AWS_BUCKET}
+
+file:
+  upload-dir: ${FILE_UPLOAD_DIR}
+
+logging:
+  level:
+    org:
+      hibernate:
+        sql: debug
+        orm:
+          jdbc:
+            bind: trace
+
+server:
+  port: 8080
+  servlet:
+    context-path: /trend
+
+springdoc:
+  api-docs:
+    enabled: true
+
+naver:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
+  datalab-client-id: ${NAVER_DATALAB_CLIENT_ID}
+  datalab-client-secret: ${NAVER_DATALAB_CLIENT_SECRET}
