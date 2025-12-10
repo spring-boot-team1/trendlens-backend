@@ -1,13 +1,17 @@
 package com.test.trend.domain.payment.payment.dto.toss;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TossPaymentConfirmRequest {
 
-	private final String paymentKey;
-    private final String orderId;
-    private final Long amount;
+	private String paymentKey;
+    private String orderId;
+    private Long amount;
 }
