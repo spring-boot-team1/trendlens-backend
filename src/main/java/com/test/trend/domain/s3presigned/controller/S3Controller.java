@@ -19,9 +19,9 @@ public class S3Controller {
     private final AccountService accountService;
 
     @PostMapping("/v1/presigned/{category}")
-    public PresignedURLResponse getPresignedUrl(@PathVariable String category, @RequestBody FileRequest request) {
+    public PresignedURLResponse getPresignedPutUrl(@PathVariable String category, @RequestBody FileRequest request) {
         String fileName = UUID.randomUUID() + "." + request.getExt();
-        return s3Service.createPresignedUrl(category, fileName, request.getContentType());
+        return s3Service.createPresignedPutUrl(category, fileName, request.getContentType());
     }
 
     @GetMapping("/v1/user/profile-image")
