@@ -69,7 +69,7 @@ public class SecurityConfig {
         //허가 URL
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login").permitAll()     // 로그인은 항상 허용
-                .requestMatchers("/auth-check", "/logout").authenticated() //인증 필요 테스트 페이지
+                .requestMatchers("/auth-check", "/api/v1/logout").authenticated() //인증 필요 테스트 페이지
 //                .requestMatchers("/trend/**").permitAll()
                 .anyRequest().permitAll());
 
