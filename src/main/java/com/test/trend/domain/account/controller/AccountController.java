@@ -33,45 +33,45 @@ public class AccountController {
         return "UserController >>>>> /login";
     }
 
-    /**
-     * 회원 가입 요청 처리(작동안함)
-     * 계속 application/octet-stream으로 인식됨
-     * @param dto 폼데이터(이미지 제외)
-     * @param image 프로필사진
-     * @return ResponseEntity 200 Ok
-     */
-    @Hidden
-    @PostMapping(value ="/api/v1/signup",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> signup(
-            @Valid @RequestPart("dto")RegisterRequestDTO dto,
-            @RequestPart(value = "profilepic", required = false) MultipartFile image) {
-        System.out.println("UserController.register() >>>>> " + dto);
-        accountService.signup(dto, image); //비즈니스 로직은 Service객체에 위임
-        return ResponseEntity.ok().build(); // 200 OK
-    }
+//    @Hidden
+//    @PostMapping(value ="/api/v1/signup",
+//            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<?> signup(
+//            @Valid @RequestPart("dto")RegisterRequestDTO dto,
+//            @RequestPart(value = "profilepic", required = false) MultipartFile image) {
+//        System.out.println("UserController.register() >>>>> " + dto);
+//        accountService.signup(dto, image); //비즈니스 로직은 Service객체에 위임
+//        return ResponseEntity.ok().build(); // 200 OK
+//    }
+
+
+//    @PostMapping(value ="/api/v2/signup",
+//            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<?> signup2(
+//            @RequestPart("dto")String dtoJson,
+//            @RequestPart(value = "profilepic", required = false) MultipartFile image) throws JsonProcessingException {
+//        System.out.println("UserController.register() >>>>> " + dtoJson);
+//
+//        RegisterRequestDTO dto = objectMapper.readValue(dtoJson, RegisterRequestDTO.class);
+//        Set<ConstraintViolation<RegisterRequestDTO>> violations = validator.validate(dto);
+//        if (!violations.isEmpty()) {
+//            String message = violations.iterator().next().getMessage();
+//            throw new IllegalArgumentException(message);
+//        }
+//
+//        accountService.signup(dto, image); //비즈니스 로직은 Service객체에 위임
+//        return ResponseEntity.ok().build(); // 200 OK
+//    }
 
     /**
-     * 회원 가입 요청 처리
-     * @param dtoJson 폼데이터(이미지 제외)
-     * @param image 프로필사진
-     * @return ResponseEntity 200 Ok
+     *
+     * @param registerRequestDTO 회원가입 요청
+     * @return 200 OK
      */
-    @PostMapping(value ="/api/v2/signup",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> signup2(
-            @RequestPart("dto")String dtoJson,
-            @RequestPart(value = "profilepic", required = false) MultipartFile image) throws JsonProcessingException {
-        System.out.println("UserController.register() >>>>> " + dtoJson);
-
-        RegisterRequestDTO dto = objectMapper.readValue(dtoJson, RegisterRequestDTO.class);
-        Set<ConstraintViolation<RegisterRequestDTO>> violations = validator.validate(dto);
-        if (!violations.isEmpty()) {
-            String message = violations.iterator().next().getMessage();
-            throw new IllegalArgumentException(message);
-        }
-
-        accountService.signup(dto, image); //비즈니스 로직은 Service객체에 위임
+    @PostMapping(value ="/api/v3/signup")
+    public ResponseEntity<?> signup3(@RequestBody RegisterRequestDTO registerRequestDTO){
+        System.out.println("UserController.register() >>>>> " + registerRequestDTO);
+        accountService.signup(registerRequestDTO); //비즈니스 로직은 Service객체에 위임
         return ResponseEntity.ok().build(); // 200 OK
     }
 

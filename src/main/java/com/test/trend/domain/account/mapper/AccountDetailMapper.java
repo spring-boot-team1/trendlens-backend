@@ -16,10 +16,11 @@ public class AccountDetailMapper {
      * @param dto RegisterRequestDTO
      * @return AccountDetailDTO
      */
-    public AccountDetailDTO fromRegisterDTO(RegisterRequestDTO dto) {
+    private AccountDetailDTO fromRegisterDTO(RegisterRequestDTO dto) {
         return AccountDetailDTO.builder()
                 .username(dto.getUsername())
                 .nickname(dto.getNickname())
+                .profilepic(dto.getProfilepic())
 //                .phonenum(dto.getPhonenum()) //service에서 넣음
 //                .birthday(dto.getBirthday()) //service에서 넣음
                 .build();
@@ -35,9 +36,9 @@ public class AccountDetailMapper {
      * @param phonenum
      * @return AccountDetail 엔티티
      */
-    public AccountDetail toEntity(AccountDetailDTO dto, Account account, String imagePath, LocalDate birthday, String phonenum) {
+    public AccountDetail toEntity(RegisterRequestDTO dto, Account account, String imagePath, LocalDate birthday, String phonenum) {
         return AccountDetail.builder()
-                .seqAccountDetail(dto.getSeqAccountDetail())
+//                .seqAccountDetail(dto.getSeqAccountDetail())
                 .username(dto.getUsername())
                 .nickname(dto.getNickname())
                 .phonenum(phonenum)
