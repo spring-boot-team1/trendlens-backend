@@ -51,9 +51,9 @@ public class S3Service {
         PresignedPutObjectRequest presignedPutObjectRequest = presigner.presignPutObject(r ->
                 r.putObjectRequest(objectRequest).signatureDuration(Duration.ofMinutes(5))
         );
-        String finalURL = prop.getUrlPrefix() + "/" + key;
+//        String finalURL = prop.getUrlPrefix() + "/" + key;
 
-        return new PresignedURLResponse(presignedPutObjectRequest.url().toString(), finalURL);
+        return new PresignedURLResponse(presignedPutObjectRequest.url().toString(), key);
     }
 
     /**
