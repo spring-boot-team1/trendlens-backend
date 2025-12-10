@@ -75,7 +75,7 @@ public class AccountController {
         return ResponseEntity.ok().build(); // 200 OK
     }
 
-    @PostMapping("/api/vi/reissue")
+    @PostMapping("/api/v1/reissue")
     public ResponseEntity<?> reissue(@CookieValue(value = "refreshToken", required = false) String refreshToken, HttpServletResponse response) {
         String newAccessToken = authService.reissue(refreshToken, response);
         return ResponseEntity.ok().header("Authorization", "Bearer " + newAccessToken).build();
