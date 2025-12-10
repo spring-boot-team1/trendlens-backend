@@ -31,7 +31,7 @@ public class S3Service {
      * @param contentType MIME 타입
      * @return PresignedURLResponse
      */
-    public PresignedURLResponse createPresignedUrl(String category, String fileName, String contentType) {
+    public PresignedURLResponse createPresignedPutUrl(String category, String fileName, String contentType) {
         //custom.s3.prefix에서 폴더명 가져오기
         String directory = prop.getPrefix().get(category);
         if (directory == null) {
