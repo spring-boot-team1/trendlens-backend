@@ -34,36 +34,6 @@ public class AccountController {
         return "UserController >>>>> /login";
     }
 
-//    @Hidden
-//    @PostMapping(value ="/api/v1/signup",
-//            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<?> signup(
-//            @Valid @RequestPart("dto")RegisterRequestDTO dto,
-//            @RequestPart(value = "profilepic", required = false) MultipartFile image) {
-//        System.out.println("UserController.register() >>>>> " + dto);
-//        accountService.signup(dto, image); //비즈니스 로직은 Service객체에 위임
-//        return ResponseEntity.ok().build(); // 200 OK
-//    }
-
-
-//    @PostMapping(value ="/api/v2/signup",
-//            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<?> signup2(
-//            @RequestPart("dto")String dtoJson,
-//            @RequestPart(value = "profilepic", required = false) MultipartFile image) throws JsonProcessingException {
-//        System.out.println("UserController.register() >>>>> " + dtoJson);
-//
-//        RegisterRequestDTO dto = objectMapper.readValue(dtoJson, RegisterRequestDTO.class);
-//        Set<ConstraintViolation<RegisterRequestDTO>> violations = validator.validate(dto);
-//        if (!violations.isEmpty()) {
-//            String message = violations.iterator().next().getMessage();
-//            throw new IllegalArgumentException(message);
-//        }
-//
-//        accountService.signup(dto, image); //비즈니스 로직은 Service객체에 위임
-//        return ResponseEntity.ok().build(); // 200 OK
-//    }
-
     /**
      *
      * @param registerRequestDTO 회원가입 요청
