@@ -1,7 +1,7 @@
-package com.test.trend.domain.common.service;
+package com.test.trend.domain.s3presigned.service;
 
 import com.test.trend.config.S3Properties;
-import com.test.trend.domain.common.dto.PresignedURLResponse;
+import com.test.trend.domain.s3presigned.dto.PresignedURLResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -48,7 +48,7 @@ public class S3Service {
         PresignedPutObjectRequest presignedPutObjectRequest = presigner.presignPutObject(r ->
                 r.putObjectRequest(objectRequest).signatureDuration(Duration.ofMinutes(5))
         );
-        String finalURL = prop.getBaseUrl() + "/" + key;
+        String finalURL = prop.getUrlPrefix() + "/" + key;
 
         return new PresignedURLResponse(presignedPutObjectRequest.url().toString(), finalURL);
     }
