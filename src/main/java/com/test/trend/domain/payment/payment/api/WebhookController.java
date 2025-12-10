@@ -36,20 +36,20 @@ public class WebhookController {
         }
 
         // 2) 서명 검증 실패
-        if (!signatureValidator.isValid(signature, body)) {
+        if (!validator.isValid(signature, body)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("INVALID_SIGNATURE");
         }
 
         // 3) JSON 파싱
         TossWebhookRequest request;
         try {
-            request = objectMapper.readValue(body, TossWebhookRequest.class);
+            request = mapper.readValue(body, TossWebhookRequest.class);
         } catch (JsonProcessingException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("INVALID_PAYLOAD");
         }
 
         // 4) 서비스 처리 (로그 저장 + 중복 체크 + Payment 업데이트)
-        webhookService.processWebhook(request, body, signature);
+        service.processWebhook(request, body, signature);
 
         // Toss는 200 OK를 받으면 성공으로 간주하고 재전송을 멈춤
         return ResponseEntity.ok("OK");
