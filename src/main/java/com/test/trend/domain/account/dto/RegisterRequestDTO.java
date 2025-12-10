@@ -24,4 +24,5 @@ public class RegisterRequestDTO {
     private String nickname;
     private String phonenum;
     private String birthday;
+    private String profilepic;
 }

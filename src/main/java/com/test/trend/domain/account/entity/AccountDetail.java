@@ -36,7 +36,7 @@ public class AccountDetail {
     @Column
     private LocalDate birthday;
 
-    @Column(length = 50)
+    @Column(length = 500)
     private String profilepic;
 
     @OneToOne
