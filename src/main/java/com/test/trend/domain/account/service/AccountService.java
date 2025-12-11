@@ -85,9 +85,10 @@ public class AccountService {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
 //                .secure(true)
+//                .sameSite("None")
+                .sameSite("Lax")
                 .path("/")
                 .maxAge(0)
-                .sameSite("None")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
