@@ -3,6 +3,7 @@ package com.test.trend.domain.crawling.service;
 import com.test.trend.domain.crawling.content.ContentDetail;
 import com.test.trend.domain.crawling.content.ContentDetailRepository;
 import com.test.trend.domain.crawling.freq.WordFrequencyService;
+import com.test.trend.domain.crawling.insight.WeeklyInsightService;
 import com.test.trend.domain.crawling.keyword.Keyword;
 import com.test.trend.domain.crawling.keyword.KeywordRepository;
 import com.test.trend.domain.crawling.keyword.RisingKeywordDto;
@@ -13,25 +14,34 @@ import com.test.trend.domain.crawling.targeturl.TargetUrlRepository;
 import com.test.trend.enums.TargetUrlStatus;
 import com.test.trend.enums.YesNo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TrendPipelineService {
 
+    // crawling
     private final MusinsaCategoryCrawlerService musinsaService;
     private final SearchApiService searchApiService;
     private final JsoupCrawlerService jsoupService;
     private final ContentDetailRepository contentDetailRepo;
     private final KeywordRepository keywordRepo;
     private final TargetUrlRepository targetUrlRepo;
+
     private final WordFrequencyService wordFrequencyService;
     private final DataLabApiService dataLabApiService;
+
+    // trendscore
     private final TrendScoreService trendScoreService;
+
+    //insight
+    private final WeeklyInsightService weeklyInsightService;
 
     public void runCrawlingFlow() {
 
@@ -80,9 +90,29 @@ public class TrendPipelineService {
 
         try {
             trendScoreService.recalcTodayScores();
+            System.out.println((">>>>[PipeLine] 크롤링 및 데이터 랩 수집 완료"));
         } catch (Exception e) {
             System.out.println("[TrendScore] 계산 실패" + e.getMessage());
         }
+
+        System.out.println(" >>>> [PipeLine] Weekly Insight 생성 시작");
+
+        for (RisingKeywordDto rk : risingKeywords) {
+            try {
+                //키워드 엔티티 조회
+                Keyword keyworEntity = keywordRepo.findByKeyword(rk.getKeyword())
+                        .orElse(null);
+
+                if (keyworEntity != null) {
+                    //Insight 생성 호출
+                    weeklyInsightService.createWeeklyInsight(keyworEntity);
+                }
+            } catch (Exception e) {
+                //Insight 하나 실패해도 파이프라인은 계속 돌도록 로그만 찍음
+                log.error("Insight 생성 실패 - 키워드: {}", rk.getKeyword(), e);
+            }
+        }
+        System.out.println(">>>[PipeLine] 모든 작업(Insight 포함) 완료");
     }
 
     private void processSingleContent(Keyword keywordEntity, SearchResultDto dto) {

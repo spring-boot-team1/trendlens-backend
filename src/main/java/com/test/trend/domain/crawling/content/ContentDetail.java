@@ -27,8 +27,6 @@ public class ContentDetail {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqContentDetailGenerator")
     private Long seqDetail;
 
-    // 관계 매핑이 되어 있지만, 단순 저장을 위해 String url도 임시로 허용하거나
-    // 실제로는 TargetUrl 객체를 set 해야 합니다. (일단 파이프라인 작동을 위해 필드 추가)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seqUrl")
     private TargetUrl targetUrl;
