@@ -75,7 +75,7 @@ public class TrendScoreService {
 
             // ScoreB: 최신 TrendMetric ratio (없으면 0)
             Optional<TrendMetric> latestMetricOpt =
-                    trendMetricRepo.findByKeyword_SeqKeywordOrderByBaseDateDesc(seqKeyword);
+                    trendMetricRepo.findTopByKeyword_SeqKeywordOrderByBaseDateDesc(seqKeyword);
 
             double scoreB = latestMetricOpt
                     .map(TrendMetric::getRatio)

@@ -9,5 +9,5 @@ public interface TrendMetricRepository extends JpaRepository<TrendMetric, Long> 
 
     Optional<TrendMetric> findByKeyword_SeqKeywordAndBaseDate(Long seqKeyword, LocalDate parsedDate);
 
-    Optional<TrendMetric> findByKeyword_SeqKeywordOrderByBaseDateDesc(Long seqKeyword);
+    Optional<TrendMetric> findTopByKeyword_SeqKeywordOrderByBaseDateDesc(Long seqKeyword);
 }

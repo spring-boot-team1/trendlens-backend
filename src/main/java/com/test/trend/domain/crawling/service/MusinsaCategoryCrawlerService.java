@@ -1,10 +1,8 @@
 package com.test.trend.domain.crawling.service;
 
+import com.test.trend.domain.crawling.keyword.KeywordRepository;
 import com.test.trend.domain.crawling.keyword.RisingKeywordDto;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -14,10 +12,23 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 
 @Service
 public class MusinsaCategoryCrawlerService {
+
+    private final KeywordRepository keywordRepo;
+
+    public MusinsaCategoryCrawlerService(KeywordRepository keywordRepository) {
+        this.keywordRepo = keywordRepository;
+    }
 
     public List<RisingKeywordDto> crawlRisingKeywords() {
         List<RisingKeywordDto> result = new ArrayList<>();
@@ -46,8 +57,8 @@ public class MusinsaCategoryCrawlerService {
                 Thread.sleep(1000);
             }
 
-            // ★ 중요: 현재 무신사 구조에 맞는 선택자 사용
             // href에 'goods' 또는 'products'가 포함된 a 태그 찾기
+            List<ProductInfo> productInfos = new ArrayList<>();
             List<WebElement> elements = driver.findElements(By.cssSelector("a[href*='/goods/'], a[href*='/products/']"));
 
             System.out.println(">>> [Debug] 발견된 링크 개수: " + elements.size());
@@ -55,35 +66,39 @@ public class MusinsaCategoryCrawlerService {
             List<String> visitedTitles = new ArrayList<>(); // 중복 방지용
 
             for (WebElement el : elements) {
+                if (productInfos.size() >= 5) break;
+
                 // 1. 키워드(상품명) 추출
-                String title = el.getAttribute("title");
-                if (title == null || title.isBlank()) {
-                    title = el.getText();
-                }
-
                 // 유효성 검사 (광고, 좋아요 버튼 등 제외)
+                String title = el.getAttribute("title");
+                if (title == null || title.isBlank()) title = el.getText();
                 String href = el.getAttribute("href");
-                if (href == null || href.contains("/like/") || href.contains("/cart/") || href.contains("/reviews")) {
-                    continue;
+
+                // 필터링
+                if (href == null || href.contains("/like/") || href.contains("/cart/") || href.contains("/reviews")) continue;
+                if (title == null || title.length() <= 1) continue;
+
+                title = title.replaceAll("\n", " ").trim();
+
+                if (!visitedTitles.contains(title)) {
+                    visitedTitles.add(title);
+                    productInfos.add(new ProductInfo(title, href)); // URL 저장
+
+                }
+            }
+
+            System.out.println(">>> [Debug] 상세 페이지 진입하여 카테고리 수집 시작 (" + productInfos.size() + "개)");
+
+            //2. 수집한 URL로 상세페이지 이동 (selenium 이동 -> Jsoup 파싱)
+            for (ProductInfo info : productInfos) {
+                String category = getCategoryFromDetailPage(driver, info.url);
+
+                if ("기타".equals(category)) {
+                    category = detectCategoryByKeyword(info.title);
                 }
 
-                if (title != null && title.length() > 1) {
-                    title = title.replaceAll("\n", " ").trim(); // 줄바꿈 제거
-
-                    // 중복이 아니고, 의미 있는 단어만
-                    if (!visitedTitles.contains(title)) {
-                        visitedTitles.add(title);
-
-                        // 2. 카테고리 자동 분류
-                        String category = detectCategory(title);
-
-                        // DTO에 담기
-                        result.add(new RisingKeywordDto(title, category));
-                        System.out.println("   + 수집: [" + category + "] " + title);
-                    }
-                }
-
-                if (result.size() >= 5) break; // 20개만 수집
+                result.add(new RisingKeywordDto(info.title, category));
+                System.out.println(" + 완료: [" + category + "]" + info.title);
             }
 
         } catch (Exception e) {
@@ -95,39 +110,163 @@ public class MusinsaCategoryCrawlerService {
         return result;
     }
 
-    // 키워드 기반 카테고리 분류 로직
-    private String detectCategory(String keyword) {
-        String lower = keyword.toLowerCase();
+    // 상세 페이지 로직 (Selenium 이동 -> Jsoup 파싱)
+    private String getCategoryFromDetailPage(WebDriver driver, String url) {
+        try {
 
-        if (lower.contains("맨투맨") || lower.contains("후드") || lower.contains("티셔츠")
-                || lower.contains("셔츠") || lower.contains("니트") || lower.contains("가디건")
-                || lower.contains("스웨트") || lower.contains("긴팔")) {
+            driver.get(url);
+
+            // 페이지 로딩 대기 (필수 요소가 뜰 때까지)
+            // 무신사 상세 페이지의 브레드크럼(경로) 클래스 대기
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
+            try {
+                // global-breadcrumb 또는 item_categories 등 여러 클래스 중 하나라도 뜰 때까지 대기
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href*='/category/']")));
+            } catch (TimeoutException e) {
+                System.out.println(" >>> [Detail] breadcrumb 대기 타임아웃, 일단 진행");
+            }
+
+            // ★ 핵심: Selenium이 렌더링한 소스를 String으로 가져옴
+            String html = driver.getPageSource();
+            Document doc = Jsoup.parse(html);
+
+            // 무신사 카테고리 경로 선택자 (사이트 개편에 따라 여러 개 시도)
+            Elements categoryElements = doc.select("a[data-category-name], a[href*='/category/']");
+
+            if (categoryElements.isEmpty()) {
+                System.out.println(" >>> [Detail] 경로 없음 -> 기타반환");
+                return "기타";
+            }
+            List<String> paths = new ArrayList<>();
+            for (Element cat : categoryElements) {
+                // 텍스트보다 더 정확한 'data-category-name' 속성 값을 우선 추출
+                String catName = cat.attr("data-category-name");
+
+                // 속성 값이 비어있으면 텍스트(예: "스니커즈")를 가져옴
+                if (catName == null || catName.isBlank()) {
+                    catName = cat.text().trim();
+                }
+
+                // 필터링: "브랜드"나 "전체" 같은 건 제외하고 유효한 카테고리만
+                if (!catName.isEmpty() && !catName.contains("무신사") && catName.length() < 10) {
+                    paths.add(catName);
+                }
+            }
+            // 중복 제거 (LinkedHashSet 이용)
+            List<String> uniquePaths = new ArrayList<>(new LinkedHashSet<>(paths));
+            if (uniquePaths.isEmpty()) return "기타";
+
+            return mapToCoarseCategory(String.join(" > ", uniquePaths));
+
+        } catch (Exception e) {
+            System.out.println("   [Error] 상세 페이지 파싱 실패: " + e.getMessage());
+            return "기타";
+        }
+    }
+
+    // DTO용 내부 클래스
+    private static class ProductInfo {
+        String title;
+        String url;
+
+        public ProductInfo(String title, String url) {
+            this.title = title;
+            this.url = url;
+        }
+    }
+
+    // 기존 키워드 매칭 로직 (이름 변경: detectCategory -> detectCategoryByKeyword)
+    private String detectCategoryByKeyword(String keyword) {
+        String lower = keyword.toLowerCase();
+        if (lower.contains("맨투맨") || lower.contains("후드") || lower.contains("티셔츠") || lower.contains("셔츠") || lower.contains("니트") || lower.contains("가디건")) return "상의";
+        if (lower.contains("팬츠") || lower.contains("슬랙스") || lower.contains("데님") || lower.contains("진") || lower.contains("바지") || lower.contains("스커트")) return "하의";
+        if (lower.contains("패딩") || lower.contains("코트") || lower.contains("자켓") || lower.contains("점퍼") || lower.contains("플리스")) return "아우터";
+        if (lower.contains("스니커즈") || lower.contains("운동화") || lower.contains("부츠") || lower.contains("로퍼") || lower.contains("샌들")) return "신발";
+        if (lower.contains("가방") || lower.contains("백팩") || lower.contains("모자") || lower.contains("볼캡") || lower.contains("비니")) return "잡화";
+        return "기타";
+    }
+
+    // 경로 텍스트를 대분류로 매핑하는 로직 (기존 로직 활용)
+    private String mapToCoarseCategory(String categoryPath) {
+        if (categoryPath == null) return "기타";
+
+        String lower = categoryPath.toLowerCase();
+
+        // 불필요한 코드/색상/대괄호 정리 (선택)
+        lower = lower
+                .replaceAll("\\[[^]]*\\]", " ")         // [블랙] 같은거 제거
+                .replaceAll("[0-9]{3,}-[0-9]{2,}", " ") // FV4317-002 같은 모델코드 제거
+                .replaceAll("[^가-힣a-zA-Z ]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        // ===== 상의 =====
+        if (lower.contains("맨투맨") || lower.contains("후드") || lower.contains("후디")
+                || lower.contains("티셔츠") || lower.contains("티셔쯔") // 오타 방어용
+                || lower.contains("t셔츠") || lower.contains("t셔츠")
+                || lower.contains("t-shirt") || lower.contains("tee") || lower.contains("티") || lower.contains("반팔")
+                || lower.contains("셔츠") || lower.contains("shirt")
+                || lower.contains("니트") || lower.contains("knit")
+                || lower.contains("가디건") || lower.contains("cardigan")
+                || lower.contains("스웨트") || lower.contains("sweat")
+                || lower.contains("크루넥") || lower.contains("crewneck")
+                || lower.contains("긴팔") || lower.contains("롱슬리브")) {
             return "상의";
         }
 
-        if (lower.contains("팬츠") || lower.contains("슬랙스") || lower.contains("데님")
-                || lower.contains("청바지") || lower.contains("스커트") || lower.contains("조거")
-                || lower.contains("트레이닝") || lower.contains("바지")) {
+        // ===== 하의 =====
+        if (lower.contains("팬츠") || lower.contains("슬랙스") || lower.contains("슬랙")
+                || lower.contains("데님") || lower.contains("denim")
+                || lower.contains("청바지") || lower.contains("진") || lower.contains("jean")
+                || lower.contains("조거") || lower.contains("jogger")
+                || lower.contains("트레이닝") || lower.contains("조거팬츠")
+                || lower.contains("바지") || lower.contains("pants") || lower.contains("trouser")
+                || lower.contains("스커트") || lower.contains("skirt")
+                || lower.contains("와이드팬츠") || lower.contains("shorts") || lower.contains("쇼츠")) {
             return "하의";
         }
 
-        if (lower.contains("패딩") || lower.contains("코트") || lower.contains("자켓")
-                || lower.contains("점퍼") || lower.contains("바람막이") || lower.contains("푸퍼")
-                || lower.contains("플리스") || lower.contains("집업")) {
+        // ===== 아우터 =====
+        if (lower.contains("패딩") || lower.contains("롱패딩") || lower.contains("숏패딩")
+                || lower.contains("점퍼") || lower.contains("jumper")
+                || lower.contains("자켓") || lower.contains("재킷") || lower.contains("jacket")
+                || lower.contains("코트") || lower.contains("coat")
+                || lower.contains("무스탕")
+                || lower.contains("바람막이") || lower.contains("윈드브레이커")
+                || lower.contains("다운") || lower.contains("duck down")
+                || lower.contains("puffer") || lower.contains("padding")
+                || lower.contains("플리스") || lower.contains("fleece")
+                || lower.contains("집업") || lower.contains("zip-up")) {
             return "아우터";
         }
 
-        if (lower.contains("스니커즈") || lower.contains("운동화") || lower.contains("부츠")
-                || lower.contains("로퍼") || lower.contains("샌들") || lower.contains("워커")) {
+        // ===== 신발 =====
+        if (lower.contains("신발") || lower.contains("슈즈") || lower.contains("shoes")
+                || lower.contains("스니커즈") || lower.contains("sneaker")
+                || lower.contains("운동화")
+                || lower.contains("부츠") || lower.contains("boots")
+                || lower.contains("워커") || lower.contains("boot")
+                || lower.contains("로퍼") || lower.contains("loafer")
+                || lower.contains("샌들") || lower.contains("슬리퍼") || lower.contains("sandals")
+                || lower.contains("클로그") || lower.contains("슬라이드")) {
             return "신발";
         }
 
-        if (lower.contains("가방") || lower.contains("백팩") || lower.contains("크로스백")
-                || lower.contains("모자") || lower.contains("볼캡") || lower.contains("비니")
-                || lower.contains("목도리") || lower.contains("장갑")) {
+        // ===== 잡화 =====
+        if (lower.contains("가방") || lower.contains("백팩") || lower.contains("backpack")
+                || lower.contains("크로스백") || lower.contains("cross bag")
+                || lower.contains("토트백") || lower.contains("tote")
+                || lower.contains("슬링백")
+                || lower.contains("모자") || lower.contains("캡") || lower.contains("cap")
+                || lower.contains("볼캡") || lower.contains("버킷햇") || lower.contains("bucket")
+                || lower.contains("비니") || lower.contains("beanie")
+                || lower.contains("목도리") || lower.contains("머플러") || lower.contains("scarf")
+                || lower.contains("장갑") || lower.contains("글러브") || lower.contains("glove")
+                || lower.contains("벨트") || lower.contains("belt")
+                || lower.contains("양말") || lower.contains("socks")) {
             return "잡화";
         }
 
-        return "기타"; // 분류 안 되면 기타
-    }
+        return "기타";
+        }
 }

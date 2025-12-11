@@ -42,8 +42,23 @@ public class DataLabApiService {
 
     @Transactional
     public void fetchAndSaveTrend(Long seqKeyword) {
+
+        System.out.println("========== [AUTH CHECK] ==========");
+        System.out.println("CLIENT ID: " + clientId);       // 여기가 null인지 확인
+        System.out.println("CLIENT SECRET: " + clientSecret); // 여기가 null인지 확인
+        System.out.println("==================================");
+
         Keyword keywordEntity = keywordRepo.findById(seqKeyword)
                 .orElseThrow(() -> new IllegalArgumentException("키워드 없음" + seqKeyword));
+
+        //[핵심] 검색어 정제 로직 강화
+        String originalKeyword = keywordEntity.getKeyword();
+        String queryKeyword = originalKeyword
+                .replaceAll("\\(.*?\\)", "")  // 괄호 안 내용 제거
+                .replaceAll("\\[.*?\\]", "")  // 대괄호 안 내용 제거
+                .replaceAll("-.*$", "")       // 하이픈(-) 뒤에 오는 모든 것 제거
+                .replaceAll("[0-9]+(?i)color", "") // "3 COLOR" 같은 패턴 제거
+                .trim();
 
         // 1. 날짜 설정(최근 30일)
         LocalDate endDate = LocalDate.now();
@@ -57,8 +72,8 @@ public class DataLabApiService {
                 .timeUnit("date")
                 .keywordGroups(List.of (
                         DataLabRequestDto.KeywordGroup.builder()
-                                .groupName(keywordEntity.getKeyword())
-                                .keywords(Collections.singletonList(keywordEntity.getKeyword()))
+                                .groupName(queryKeyword)
+                                .keywords(Collections.singletonList(queryKeyword))
                                 .build()
                 ))
                 .build();
@@ -74,22 +89,19 @@ public class DataLabApiService {
 
         try {
             ResponseEntity<DataLabResponseDto> response = restTemplate.exchange(request, DataLabResponseDto.class);
-
-            System.out.println("===== [DEBUG] API STATUS  =====");
-            System.out.println("HTTP STATUS = " + response.getStatusCode());
-
-            System.out.println("===== [DEBUG] API RAW BODY =====");
-            System.out.println(response);
-
             DataLabResponseDto body = response.getBody();
-
-            System.out.println("===== [DEBUG] PARSED BODY =====");
-            System.out.println(body);
 
             if (body != null && body.getResults() != null && !body.getResults().isEmpty()) {
                 List<DataLabResponseDto.Item> items = body.getResults().get(0).getData();
 
+                //[핵심2] 데이터가 진짜 있을때만 저장 및 로그 출력
+                if (items == null || items.isEmpty()) {
+                    System.out.println(" >>> [DataLab] 검색 결과 없음 (데이터 0건):" + queryKeyword);
+                    return;
+                }
+
                 // 4. DB 저장
+                int saveCount = 0;
                 for (DataLabResponseDto.Item item : items) {
                     LocalDate parsedDate = LocalDate.parse(item.getPeriod(), formatter);
                     Double ratio = item.getRatio();

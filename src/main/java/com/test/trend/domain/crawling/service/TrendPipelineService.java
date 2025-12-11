@@ -145,7 +145,7 @@ public class TrendPipelineService {
         return keywordRepo.findByKeyword(keywordStr)
                 .map(existing -> {
                     // 기존 키워드에 카테고리가 비어있으면 업데이트
-                    if (existing.getCategory() == null && category != null) {
+                    if (category != null && !category.equals("기타")) {
                         existing.setCategory(category);
                     }
                     return existing;
