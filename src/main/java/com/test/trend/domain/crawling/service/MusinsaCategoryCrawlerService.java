@@ -2,13 +2,18 @@ package com.test.trend.domain.crawling.service;
 
 import com.test.trend.domain.crawling.keyword.KeywordRepository;
 import com.test.trend.domain.crawling.keyword.RisingKeywordDto;
+import org.jsoup.internal.StringUtil;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,12 +24,16 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.util.StringUtils;
 
 
 @Service
 public class MusinsaCategoryCrawlerService {
 
     private final KeywordRepository keywordRepo;
+
+    @Value("${selenium.url:}")
+    private String seleniumUrl;
 
     public MusinsaCategoryCrawlerService(KeywordRepository keywordRepository) {
         this.keywordRepo = keywordRepository;
@@ -33,15 +42,7 @@ public class MusinsaCategoryCrawlerService {
     public List<RisingKeywordDto> crawlRisingKeywords() {
         List<RisingKeywordDto> result = new ArrayList<>();
 
-        ChromeOptions options = new ChromeOptions();
-        options.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
-        options.setExperimentalOption("useAutomationExtension", false);
-        options.addArguments("--disable-blink-features=AutomationControlled");
-        options.addArguments("--remote-allow-origins=*");
-        options.addArguments("--start-maximized");
-        // options.addArguments("--headless"); // 디버깅 끝나면 주석 해제
-
-        WebDriver driver = new ChromeDriver(options);
+        WebDriver driver = createDriver();
 
         try {
             System.out.println(">>> [Debug] 무신사 랭킹 접속...");
@@ -66,7 +67,7 @@ public class MusinsaCategoryCrawlerService {
             List<String> visitedTitles = new ArrayList<>(); // 중복 방지용
 
             for (WebElement el : elements) {
-                if (productInfos.size() >= 5) break;
+                if (productInfos.size() >= 20) break;
 
                 // 1. 키워드(상품명) 추출
                 // 유효성 검사 (광고, 좋아요 버튼 등 제외)
@@ -104,10 +105,44 @@ public class MusinsaCategoryCrawlerService {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            driver.quit();
+            if (driver != null) {
+                driver.quit();
+            }
         }
 
         return result;
+    }
+
+    private WebDriver createDriver() {
+        ChromeOptions options = new ChromeOptions();
+
+        //공통옵션
+        options.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
+        options.setExperimentalOption("useAutomationExtension", false);
+        options.addArguments("--disable-blink-features=AutomationControlled");
+        options.addArguments("--start-maximized");
+        options.addArguments("--remote-allow-origins=*");
+
+        //AWS 배포 환경
+        if (StringUtils.hasText(seleniumUrl)) {
+            System.out.println(">>> [System] Romote WebDriver 연결 시도:" + seleniumUrl);
+
+            options.addArguments("--headless");              // 모니터 없는 환경
+            options.addArguments("--no-sandbox");            // 리눅스 샌드박스 정책 우회
+            options.addArguments("--disable-dev-shm-usage"); // 메모리 부족 방지
+            options.addArguments("--disable-gpu");           // GPU 가속 끄기
+            options.addArguments("--window-size=1920,1080"); // 레이아웃 깨짐 방지
+
+            try {
+                return new RemoteWebDriver(new URL(seleniumUrl), options);
+            } catch (MalformedURLException e) {
+                throw  new RuntimeException("Selenium URL 형식이 잘못되었습니다: " + seleniumUrl);
+            }
+        }
+        else {
+            System.out.println(">>> [System] Local ChromeDriver 실행");
+            return  new ChromeDriver(options);
+        }
     }
 
     // 상세 페이지 로직 (Selenium 이동 -> Jsoup 파싱)

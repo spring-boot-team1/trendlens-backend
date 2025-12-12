@@ -159,7 +159,7 @@ public class TrendPipelineService {
             try {
                 wordFrequencyService.analyzeAndSave(content, result.content());
             } catch (Exception e) {
-                System.out.println(" --> 단어 분석 중 출동 발생(무시함)");
+                System.out.println(" --> 단어 분석 중 충돌 발생(무시함)");
             }
         } else {
             //크롤링 실패시 상태 변겅
