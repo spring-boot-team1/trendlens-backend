@@ -16,4 +16,6 @@ public interface TrendScoreRepository extends JpaRepository<TrendScore, Long>{
 
     @Query("SELECT ts FROM TrendScore ts JOIN FETCH ts.keyword WHERE ts.baseDate = :date ORDER BY ts.finalScore DESC")
     List<TrendScore> findDailyRank(@Param("date") LocalDate date, Pageable pageable);
+
+    List<TrendScore> findByKeywordInAndBaseDate(List<Keyword> myKeywords, LocalDate now);
 }

@@ -2,48 +2,120 @@ package com.test.trend.domain.crawling.service;
 
 import com.test.trend.domain.crawling.insight.WeeklyInsight;
 import com.test.trend.domain.crawling.insight.WeeklyInsightRepository;
+import com.test.trend.domain.crawling.interest.AccountKeyword;
+import com.test.trend.domain.crawling.interest.AccountKeywordRepository;
+import com.test.trend.domain.crawling.interest.InsightResponseDto;
 import com.test.trend.domain.crawling.interest.TrendResponseDto;
 import com.test.trend.domain.crawling.keyword.Keyword;
 import com.test.trend.domain.crawling.keyword.KeywordRepository;
 import com.test.trend.domain.crawling.score.TrendScore;
 import com.test.trend.domain.crawling.score.TrendScoreRepository;
 import com.test.trend.domain.crawling.util.DateUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class TrendService {
 
     private final KeywordRepository keywordRepo;
     private final WeeklyInsightRepository weeklyInsightRepo;
     private final TrendScoreRepository trendScoreRepo;
-    private final TrendScoreRepository trendScoreRepository;
+    private final AccountKeywordRepository accountKeywordRepo;
 
-
-    public TrendService(KeywordRepository keywordRepo, WeeklyInsightRepository weeklyInsightRepository, TrendScoreRepository trendScoreRepository) {
-        this.keywordRepo = keywordRepo;
-        this.weeklyInsightRepo = weeklyInsightRepository;
-        this.trendScoreRepository = trendScoreRepository;
-        this.trendScoreRepo = trendScoreRepository;
-    }
 
     @Transactional(readOnly = true)
-    public List<TrendResponseDto> getTrendRanking() {
+    public List<InsightResponseDto> getWeeklyInsight(String searchKeyword) {
 
-        //조회 기준 날짜 설정
-        LocalDate targetDate = LocalDate.now();
+        // A. 점수 높은 순으로 연관 키워드 10개 가져오기
+        List<Keyword> searchResults = keywordRepo.findBestMatchByScore(searchKeyword, PageRequest.of(0, 10));
 
-        //키워드 상위 10위 조회
-        List<TrendScore> scores = trendScoreRepo.findDailyRank(targetDate, PageRequest.of(0,10));
+        // B. 만약 점수 높은 게 하나도 없으면? -> 이름으로라도 검색 (Fallback)
+        if (searchResults.isEmpty()) {
+            Keyword fallback = keywordRepo.findFirstByKeywordContaining(searchKeyword);
+            if (fallback != null) {
+                searchResults.add(fallback);
+            }
+        }
 
-        //TrendScore -> TrendResponseDTO 변환
+        // C. 진짜 아무것도 없으면 빈 리스트 반환
+        if (searchResults.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // D. 찾아낸 키워드들을 하나씩 돌면서 DTO로 변환 (Insight 정보 포함)
+        List<InsightResponseDto> responseList = new ArrayList<>();
+        String weekCode = DateUtil.currentWeekCode();
+
+        for (Keyword k : searchResults) {
+            // 이 키워드에 대한 AI 분석 데이터가 있는지 확인
+            Optional<WeeklyInsight> insightOpt = weeklyInsightRepo.findByKeywordAndWeekCode(k, weekCode);
+
+            InsightResponseDto dto;
+
+            if (insightOpt.isPresent()) {
+                // 분석 데이터 있음
+                dto = InsightResponseDto.builder()
+                        .seqKeyword(k.getSeqKeyword())
+                        .keyword(k.getKeyword())
+                        .category(k.getCategory())
+                        .summary(insightOpt.get().getSummaryTxt())
+                        .stylingTip(insightOpt.get().getStylingTip())
+                        .hasInsight(true) // 프론트에서 "분석됨" 표시 가능
+                        .build();
+            } else {
+                // 분석 데이터 없음 (키워드는 존재하지만 AI가 안 돌음)
+                dto = InsightResponseDto.builder()
+                        .seqKeyword(k.getSeqKeyword())
+                        .keyword(k.getKeyword())
+                        .category(k.getCategory())
+                        .summary("분석 대기 중입니다.")
+                        .stylingTip(null)
+                        .hasInsight(false) // 프론트에서 "분석 요청" 버튼 등을 띄울 수 있음
+                        .build();
+            }
+            responseList.add(dto);
+        }
+
+        return responseList;
+    }
+
+    // 2. 비로그인용 Top 5 조회
+    @Transactional(readOnly = true)
+    public List<TrendResponseDto> getGuestTop5() {
+        // 상위 5위만 가져오기
+        List<TrendScore> scores = trendScoreRepo.findDailyRank(LocalDate.now(), PageRequest.of(0, 5));
+        return convertDto(scores);
+    }
+
+    // 3. 로그인 회원용 관심 키워드 랭킹 조회
+    @Transactional(readOnly = true)
+    public List<TrendResponseDto> getAccountRanks(Long seqAccount) {
+        // 1. 회원의 관심 키워드 리스트 조회
+        List<Keyword> myKeywords = accountKeywordRepo.findKeywordsBySeqAccount(seqAccount);
+
+        if (myKeywords.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 2. 해당 키워드들의 오늘자 TrendScore 조회
+        List<TrendScore> scores = trendScoreRepo.findByKeywordInAndBaseDate(myKeywords, LocalDate.now());
+
+        // 3. DTO 변환 후 반환
+        return convertDto(scores);
+    }
+
+    // DTO 변환 공통 메서드
+    private List<TrendResponseDto> convertDto(List<TrendScore> scores) {
         return scores.stream()
                 .map(ts -> TrendResponseDto.builder()
                         .seqKeyword(ts.getKeyword().getSeqKeyword())
@@ -52,26 +124,5 @@ public class TrendService {
                         .trendScore((int) Math.round(ts.getFinalScore()))
                         .build())
                 .collect(Collectors.toList());
-    }
-
-
-    @Transactional(readOnly = true)
-    public String getWeeklyInsight(String keywordStr) {
-
-        Keyword keyword = keywordRepo.findByKeyword(keywordStr)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 키워드입니다."));
-
-        //2. 이번주 코드 생성
-        String weekCode = DateUtil.currentWeekCode();
-
-        //3. 리포트 조회
-        Optional<WeeklyInsight> insightOpt = weeklyInsightRepo.findByKeywordAndWeekCode(keyword, weekCode);
-
-        if (insightOpt.isPresent()) {
-            return insightOpt.get().getSummaryTxt() + " ||| " + insightOpt.get().getStylingTip();
-        } else {
-            return "아직 분석된 데이터가 없습니다. (분석 요청 필요)";
-        }
-
     }
 }
