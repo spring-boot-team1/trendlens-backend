@@ -2,6 +2,7 @@ package com.test.trend.domain.analyze.service;
 
 import com.test.trend.domain.analyze.model.Sam3dBodyApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
@@ -18,8 +19,12 @@ public class Sam3dBodyClient {
     private static final String BASE_URL = "https://1yp9ttmxso638f-8000.proxy.runpod.net";
     private final WebClient webClient;
 
-    public Sam3dBodyClient(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl(BASE_URL).build();
+    public Sam3dBodyClient(
+            WebClient.Builder webClientBuilder,
+            @Value("${external.sam3d.base-url}") String baseUrl
+    ) {
+        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
+        log.info("🌐 SAM3D WebClient initialized with baseUrl={}", baseUrl);
     }
 
     /**

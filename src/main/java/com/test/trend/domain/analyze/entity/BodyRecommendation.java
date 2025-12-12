@@ -1,5 +1,6 @@
 package com.test.trend.domain.analyze.entity;
 
+import com.test.trend.domain.analyze.entity.BodyMetrics;
 import jakarta.persistence.*;
 import lombok.*;
 

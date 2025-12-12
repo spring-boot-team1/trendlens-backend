@@ -11,7 +11,9 @@ import java.math.BigDecimal;
 public class BodyAnalysisWithMetricsDTO {
 
     private Long seqAccount;
+    @Setter
     private String imageUrl;
+    @Setter
     private String meshUrl;
 
     private BigDecimal heightCm;
@@ -32,4 +34,5 @@ public class BodyAnalysisWithMetricsDTO {
     private String promptUsed;
     @Setter
     private String aiResult;
+
 }

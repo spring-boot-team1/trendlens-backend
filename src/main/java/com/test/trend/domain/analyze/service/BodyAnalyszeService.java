@@ -9,7 +9,11 @@ import com.test.trend.domain.analyze.model.Sam3dBodyApiResponse;
 import com.test.trend.domain.analyze.repository.BodyAnalysisRepository;
 import com.test.trend.domain.analyze.repository.BodyMetricsRepository;
 import com.test.trend.domain.analyze.repository.BodyRecommendationRepository;
+import com.test.trend.domain.analyze.service.BodyImageStorageService;
+import com.test.trend.domain.analyze.service.FashionRecommendClient;
+import com.test.trend.domain.analyze.service.Sam3dBodyClient;
 import com.test.trend.domain.analyze.util.BodyAnalyzeMapper;
+import com.test.trend.domain.s3presigned.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +35,7 @@ public class BodyAnalyszeService {
     private final BodyMetricsRepository bodyMetricsRepository;
     private final BodyRecommendationRepository bodyRecommendationRepository;
     private final FashionRecommendClient fashionRecommendClient;
+    private final S3Service s3Service;
 
     /**
      * 1. 이미지 S3 업로드
@@ -47,10 +52,10 @@ public class BodyAnalyszeService {
             Long seqAccount
     ) {
         try {
-            String imageUrl = bodyImageStorageService.uploadBodyPhoto(seqAccount, imageFile);
+            // 1️⃣ 바디 사진 업로드 → key 반환 (DB에는 이 값 저장)
+            String imageKey = bodyImageStorageService.uploadAndReturnKey(seqAccount, imageFile);
 
-            String imageUrlForView = bodyImageStorageService.convertS3UriToUrl(imageUrl);
-
+            // 2️⃣ SAM3D FastAPI 호출
             Sam3dBodyApiResponse apiResponse = sam3dBodyClient.analyzeBody(
                     imageFile,
                     heightCm,
@@ -62,15 +67,14 @@ public class BodyAnalyszeService {
             Sam3dBodyApiResponse.Data data = apiResponse.getData();
             Sam3dBodyApiResponse.Metrics m = data.getMetrics();
 
-            String meshUrl = data.getMeshUrl();
-            String meshUrlForview = meshUrl != null
-                    ? bodyImageStorageService.convertS3UriToUrl(meshUrl)
-                    : null;
+            // SAM3D에서 내려온 메쉬 URI (예: s3://trendlens/uploads/analyze/mesh-photo/1/xxx.obj)
+            String meshS3Uri = data.getMeshUrl();
 
+            // 3️⃣ DTO는 먼저 “DB에 저장할 원본 값”으로 생성
             BodyAnalysisWithMetricsDTO dto = BodyAnalysisWithMetricsDTO.builder()
                     .seqAccount(seqAccount)
-                    .imageUrl(imageUrlForView)
-                    .meshUrl(meshUrlForview)
+                    .imageUrl(imageKey)    // DB에는 key 저장
+                    .meshUrl(meshS3Uri)    // DB에는 S3 URI(or 나중에 key로 변환해서) 저장
                     .heightCm(m.getHeightCm())
                     .weightKg(m.getWeightKg())
                     .bmi(m.getBmi())
@@ -81,18 +85,35 @@ public class BodyAnalyszeService {
                     .gender(gender)
                     .build();
 
+            // 4️⃣ DB 저장 (원본 값 기준)
             BodyAnalysis analysis = bodyAnalyzeMapper.toBodyAnalysis(dto, seqAccount);
             BodyAnalysis savedAnalysis = bodyAnalysisRepository.save(analysis);
 
             BodyMetrics metrics = bodyAnalyzeMapper.toBodyMetrics(dto, savedAnalysis);
-            BodyMetrics savedMetrics =  bodyMetricsRepository.save(metrics);
+            BodyMetrics savedMetrics = bodyMetricsRepository.save(metrics);
 
             dto.setSeqBodyAnalysis(savedAnalysis.getSeqBodyAnalysis());
             dto.setSeqBodyMetrics(savedMetrics.getSeqBodyMetrics());
 
-            log.info("✅ 체형 분석 + 메트릭스 저장 완료: seqBodyAnalysis={}, seqBodyMetrics={}",
-                    analysis.getSeqBodyAnalysis(), metrics.getSeqBodyMetrics());
+            // 5️⃣ 저장 후 → 프론트 응답용으로 presigned URL로 덮어쓰기
 
+            // 이미지: key → presigned GET URL
+            String imagePreUrl = s3Service.createGetPresignedUrl(imageKey);
+
+            // 메쉬: s3 URI → key 추출 → presigned GET URL
+            String meshPreUrl = null;
+            if (meshS3Uri != null && !meshS3Uri.isBlank()) {
+                String meshKey = bodyImageStorageService.extractKeyFromS3Uri(meshS3Uri);
+                meshPreUrl = s3Service.createGetPresignedUrl(meshKey);
+            }
+
+            dto.setImageUrl(imagePreUrl);
+            dto.setMeshUrl(meshPreUrl);
+
+            log.info("✅ 체형 분석 + 메트릭스 저장 완료: seqBodyAnalysis={}, seqBodyMetrics={}",
+                    savedAnalysis.getSeqBodyAnalysis(), savedMetrics.getSeqBodyMetrics());
+
+            // 6️⃣ 패션 추천 호출 (이미 dto에는 presigned URL이 들어있음)
             FashionRecommendDTO fashionRecommendDTO = fashionRecommendClient.AiResult(dto);
 
             dto.setPromptUsed(fashionRecommendDTO.getPromptUsed());
@@ -113,8 +134,7 @@ public class BodyAnalyszeService {
 
         } catch (IOException e) {
             throw new RuntimeException("S3에 바디 사진 업로드 중 오류 발생", e);
-
         }
-
     }
+
 }
