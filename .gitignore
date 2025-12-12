@@ -44,3 +44,13 @@ src/main/resources/secret.yaml
 ### 기타 파일
 ### 공용 파일 아니라서 일단 추가
 docker-compose.yaml
+
+
+# Oracle Wallet
+Wallet_*/
+*.sso
+*.p12
+*.jks
+*.pem
+sqlnet.ora
+tnsnames.ora
