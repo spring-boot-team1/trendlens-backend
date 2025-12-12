@@ -70,3 +70,12 @@ naver:
   client-secret: ${NAVER_CLIENT_SECRET}
   datalab-client-id: ${NAVER_DATALAB_CLIENT_ID}
   datalab-client-secret: ${NAVER_DATALAB_CLIENT_SECRET}
+
+cors:
+  allowed-origins:
+    - https://www.trendslens.xyz
+    - https://trendslens.xyz
+  allowed-methods: [ GET, POST, PUT, DELETE, OPTIONS ]
+  allowed-headers: [ Authorization, Content-Type ]
+  exposed-headers: [ Authorization ]
+  allow-credentials: true

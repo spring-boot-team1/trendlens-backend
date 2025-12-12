@@ -1,5 +1,6 @@
 package com.test.trend.config;
 
+import com.test.trend.auth.CorsProperties;
 import com.test.trend.auth.JWTFilter;
 import com.test.trend.auth.JWTUtil;
 import com.test.trend.auth.LoginFilter;
@@ -10,6 +11,7 @@ import com.test.trend.domain.account.service.util.ClaimsBuilderUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,7 +28,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
+    private final CorsProperties corsProperties;
     //주입(필터 등록 시 사용)
     private final AuthenticationConfiguration configuration;
     private final JWTUtil jwtUtil;
@@ -67,12 +69,17 @@ public class SecurityConfig {
             );
         */
         //허가 URL
+//        http.authorizeHttpRequests(auth -> auth
+//                .requestMatchers("/login", "/trend/actuator/**").permitAll()     // 로그인은 항상 허용
+//                .requestMatchers("/auth-check", "/api/v1/logout").authenticated() //인증 필요 테스트 페이지
+////                .requestMatchers("/trend/**").permitAll()
+//                .anyRequest().permitAll());
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/trend/actuator/**").permitAll()     // 로그인은 항상 허용
-                .requestMatchers("/auth-check", "/api/v1/logout").authenticated() //인증 필요 테스트 페이지
-//                .requestMatchers("/trend/**").permitAll()
-                .anyRequest().permitAll());
-
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/login", "/trend/actuator/**").permitAll()
+                .requestMatchers("/auth-check", "/api/v1/logout").authenticated()
+                .anyRequest().permitAll()
+        );
         //JWTFilter 등록하기
         http.addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
@@ -109,13 +116,12 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("https://trendslens.xyz");
-        config.addAllowedOrigin("https://www.trendslens.xyz"); //클라이언트 주소(패턴화, addAllowedOrigin보다 조금 더 유연)
-        config.addAllowedOrigin("https://api.trendslens.xyz");
-        config.addAllowedMethod("*");
-        config.addAllowedHeader("*");
-        config.setAllowCredentials(true);
-        config.addExposedHeader("Authorization");
+        config.setAllowedOrigins(corsProperties.getAllowedOrigins());
+        config.setAllowedMethods(corsProperties.getAllowedMethods());
+        config.setAllowedHeaders(corsProperties.getAllowedHeaders());
+        config.setExposedHeaders(corsProperties.getExposedHeaders());
+        config.setAllowCredentials(corsProperties.isAllowCredentials());
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
