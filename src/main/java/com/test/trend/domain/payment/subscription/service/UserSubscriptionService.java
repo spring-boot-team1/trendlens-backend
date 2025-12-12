@@ -1,19 +1,16 @@
 package com.test.trend.domain.payment.subscription.service;
 
-import java.time.LocalDateTime;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.test.trend.domain.payment.payment.entity.Payment;
 import com.test.trend.domain.payment.subscription.dto.UserSubscriptionDTO;
+import com.test.trend.domain.payment.subscription.dto.UserSubscriptionStatusResponse;
 import com.test.trend.domain.payment.subscription.entity.SubscriptionPlan;
 import com.test.trend.domain.payment.subscription.entity.UserSubscription;
 import com.test.trend.domain.payment.subscription.mapper.UserSubscriptionMapper;
 import com.test.trend.domain.payment.subscription.repository.SubscriptionPlanRepository;
 import com.test.trend.domain.payment.subscription.repository.UserSubscriptionRepository;
-import com.test.trend.enums.SubscriptionStatus;
-import com.test.trend.enums.YesNo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +30,22 @@ public class UserSubscriptionService {
     private final UserSubscriptionRepository userRepository;
     private final SubscriptionPlanRepository planRepository;
     private final UserSubscriptionMapper mapper;
+    
+    @Transactional(readOnly = true)
+    public UserSubscriptionStatusResponse getSubscriptionStatus(Long seqAccount) {
+
+        UserSubscription sub = userRepository.findActiveBySeqAccount(seqAccount)
+            .orElseThrow(() -> new IllegalStateException("활성 구독이 없습니다."));
+
+        SubscriptionPlan plan = sub.getSeqSubscriptionPlan();
+
+        return UserSubscriptionStatusResponse.builder()
+            .planName(plan.getPlanName())
+            .status(sub.getStatus().name())
+            .startDate(sub.getStartDate())
+            .nextBillingDate(sub.getNextBillingDate())
+            .build();
+    }
 
     /**
      * 신규 사용자 구독을 생성한다.
