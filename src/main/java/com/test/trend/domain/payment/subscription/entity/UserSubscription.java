@@ -8,9 +8,12 @@ import com.test.trend.enums.YesNo;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -32,7 +35,10 @@ public class UserSubscription {
 	
 	// FK
 	private Long seqAccount;
-	private Long seqSubscriptionPlan;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seqSubscriptionPlan")
+	private SubscriptionPlan seqSubscriptionPlan;
 	
 	private LocalDateTime startDate;
 	private LocalDateTime endDate;
@@ -42,25 +48,47 @@ public class UserSubscription {
 	private YesNo autoRenewYn;	// Y/N
 	
 	@Enumerated(EnumType.STRING)
-	private SubscriptionStatus status;	// NOT_SUBSCRIBED/ACTIVE/CANCELED/EXPIRED
-	private String cancelReason;
+	private SubscriptionStatus status;	// ACTIVE/CANCELED/EXPIRED
 	
+	private String cancelReason;
 	private LocalDateTime createdAt;
 	
-    /** 구독 취소 */
+	/** 구독 생성 팩토리 메서드 */
+    public static UserSubscription create(Long seqAccount, SubscriptionPlan plan) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return UserSubscription.builder()
+                .seqAccount(seqAccount)
+                .seqSubscriptionPlan(plan)
+                .startDate(now)
+                .endDate(now.plusMonths(plan.getDurationMonth()))
+                .nextBillingDate(now.plusMonths(plan.getDurationMonth()))
+                .autoRenewYn(YesNo.Y)
+                .status(SubscriptionStatus.ACTIVE)
+                .createdAt(now)
+                .build();
+    }
+	
+	 /** 정기 결제 성공 시 기간 연장 */
+    public void extendBillingDate(int months) {
+        this.endDate = this.endDate.plusMonths(months);
+        this.nextBillingDate = this.nextBillingDate.plusMonths(months);
+    }
+	
+    /** 구독 취소(즉시 해지 아님, autoRenewYn만 off) */
     public void cancel(String reason) {
         this.status = SubscriptionStatus.CANCELED;
         this.cancelReason = reason;
         this.autoRenewYn = YesNo.N;
     }
 
-    /** 다음 결제일 연장 */
-    public void extendBillingDate() {
-        if (this.nextBillingDate == null) {
-            this.nextBillingDate = LocalDateTime.now().plusMonths(1);
-        } else {
-            this.nextBillingDate = this.nextBillingDate.plusMonths(1);
-        }
+    /** 구독 만료 처리 */
+    public void expire() {
+        this.status = SubscriptionStatus.EXPIRED;
     }
 
+	public void updateStatus(SubscriptionStatus canceled) {
+		// TODO Auto-generated method stub
+		
+	}
 }

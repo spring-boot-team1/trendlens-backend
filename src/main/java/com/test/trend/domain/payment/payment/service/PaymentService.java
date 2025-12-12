@@ -22,138 +22,92 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 결제(Payment) 정보를 관리하는 서비스
- * 결제 요청, 승인, 실패 처리 등을 담당
+ * 결제(Payment) 도메인의 비즈니스 로직을 처리하는 서비스.
+ * <p>
+ * - 결제 요청 기록(PENDING)<br>
+ * - Toss 결제 승인(confirm)<br>
+ * - 승인/실패 상태 변경 및 구독 갱신 연동<br>
+ * </p>
  */
 @Service
 @RequiredArgsConstructor
 @Transactional
 @Slf4j
 public class PaymentService {
-	
-	private final PaymentRepository repository;
-	private final PaymentMapper mapper;
-	private final UserSubscriptionService service;
-	
-	@Value("${toss.secret-key}")
-	private String tossSecretKey;
-	
-	/**
-     * 결제 요청 기록
-     * 
-     * @param dto 결제 요청 DTO
-     * @return 저장된 결제 정보 DTO
-     */
-	public PaymentDTO recordPaymentRequest(PaymentDTO dto) {
-		Payment entity = mapper.toEntity(dto);
-		Payment saved = repository.save(entity);
-		return mapper.toDto(entity);
-	}
-	
-	/**
-     * 내부 결제 승인 처리
-     *
-     * @param seqPayment 결제 PK
-     * @return 승인된 결제 DTO
-     */
-	public PaymentDTO approvePayment(Long seqPayment) {
-		
-		Payment payment = repository.findById(seqPayment)
-				.orElseThrow(() -> new IllegalArgumentException("결제 내역이 없습니다."));
-		
-		Payment updated = Payment.builder()
-				.seqPayment(payment.getSeqPayment())
-				.seqAccount(payment.getSeqAccount())
-                .seqUserSub(payment.getSeqUserSub())
-                .amount(payment.getAmount())
-                .paymentMethod(payment.getPaymentMethod())
-                .paymentStatus(PaymentStatus.APPROVED)
-                .requestTime(payment.getRequestTime())
-                .approveTime(LocalDateTime.now())
-                .cancelTime(payment.getCancelTime())
-                .failReason(null)
-				.build();
-		
-		repository.save(updated);
-		return mapper.toDto(updated);
-	}
-	
-	/**
-     * 결제 실패 처리
-     *
-     * @param seqPayment 결제 PK
-     * @param failReason 실패 사유
-     * @return 실패 처리된 결제 DTO
-     */
-	public PaymentDTO failPayment(Long seqPayment, String failReason) {
-		
-		Payment payment = repository.findById(seqPayment)
-				.orElseThrow(() -> new IllegalArgumentException("결제 내역이 없습니다."));
-		
-		Payment updated = Payment.builder()
-				.seqPayment(payment.getSeqPayment())
-				.seqAccount(payment.getSeqAccount())
-                .seqUserSub(payment.getSeqUserSub())
-                .amount(payment.getAmount())
-                .paymentMethod(payment.getPaymentMethod())
-                .paymentStatus(PaymentStatus.FAILED)
-                .requestTime(payment.getRequestTime())
-                .approveTime(null)
-                .cancelTime(null)
-                .failReason(failReason)
-				.build();
-		
-		repository.save(updated);
-		return mapper.toDto(updated);
-	}
-	
-	public PaymentDTO confirmTossPayment(TossPaymentConfirmRequest request) {
-		
-		// 1) Toss REST API 호출 (결제 승인)
-	    String auth = "Basic " + Base64.getEncoder()
-	            .encodeToString((tossSecretKey + ":").getBytes());
-		
-		// 1. Toss Payment 승인요청
-		TossPaymentConfirmResponse tossResponse = WebClient.create("https://api.tosspayments.com")
-				.post()
-	            .uri("/v1/payments/confirm")
-	            .header("Authorization", auth)
-	            .header("Content-Type", "application/json")
-	            .bodyValue(request)
-	            .retrieve()
-	            .bodyToMono(TossPaymentConfirmResponse.class)
-	            .block();
-		
-		if (tossResponse == null) {
-			throw new IllegalStateException("Toss 결제 승인 응답이 null입니다.");
-		}
-		
-		log.info("[TOSS CONFIRM RESPONSE] {}", tossResponse);
-		
-		// 2. Toss 응답 → Payment 엔티티 생성
-		Payment payment = Payment.builder()
-	            .paymentKey(tossResponse.getPaymentKey())
-	            .orderId(tossResponse.getOrderId())
-	            .seqAccount(request.getSeqAccount()) // 반드시 필요!!
-	            .paymentStatus(PaymentStatus.fromTossStatus(tossResponse.getStatus()))
-	            .approveTime(parseTossTime(tossResponse.getApprovedAt()))
-	            .paymentMethod(tossResponse.getMethod())
-	            .amount(tossResponse.getTotalAmount()) // toss 응답의 totalAmount 사용
-	            .build();
-		
-		Payment saved = repository.save(payment);
 
-		// 3. 구독 갱신
-		service.processPayment(saved);
-		
-        // 4. DB 저장 후 DTO로 변환
+    private final PaymentRepository repository;
+    private final PaymentMapper mapper;
+    private final UserSubscriptionService subscriptionService;
+
+    @Value("${toss.secret-key}")
+    private String tossSecretKey;
+
+    /**
+     * 결제 요청을 PENDING 상태로 먼저 기록한다.
+     *
+     * @param dto 결제 요청 정보
+     * @return 저장된 결제 정보
+     */
+    public PaymentDTO recordPaymentRequest(PaymentDTO dto) {
+        // 도메인 메서드 사용 (Payment.createPending)
+        Payment pending = Payment.createPending(dto.getSeqAccount(), dto.getOrderId(), dto.getAmount());
+        Payment saved = repository.save(pending);
         return mapper.toDto(saved);
-	}
+    }
 
-	private LocalDateTime parseTossTime(String time) {
-	    return OffsetDateTime.parse(time).toLocalDateTime();
-	}
+    /**
+     * Toss Payments 결제 승인 API를 호출하고,
+     * 응답 정보를 기반으로 Payment 엔티티를 생성/저장한 뒤 구독을 갱신한다.
+     *
+     * @param request Toss 결제 승인 요청 DTO
+     * @return 저장된 Payment 정보
+     */
+    public PaymentDTO confirmTossPayment(TossPaymentConfirmRequest request) {
 
+        String auth = "Basic " + Base64.getEncoder()
+                .encodeToString((tossSecretKey + ":").getBytes());
+
+        // 1) Toss REST API 호출 (결제 승인)
+        TossPaymentConfirmResponse tossResponse = WebClient.create("https://api.tosspayments.com")
+                .post()
+                .uri("/v1/payments/confirm")
+                .header("Authorization", auth)
+                .header("Content-Type", "application/json")
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(TossPaymentConfirmResponse.class)
+                .block();
+
+        if (tossResponse == null) {
+            throw new IllegalStateException("Toss 결제 승인 응답이 null입니다.");
+        }
+
+        log.info("[TOSS CONFIRM RESPONSE] {}", tossResponse);
+
+        // 2) Toss 응답 → Payment 엔티티 생성
+        Payment payment = Payment.builder()
+                .paymentKey(tossResponse.getPaymentKey())
+                .orderId(tossResponse.getOrderId())
+                .seqAccount(request.getSeqAccount())
+                .amount(tossResponse.getTotalAmount())
+                .paymentMethod(tossResponse.getMethod())
+                .paymentStatus(PaymentStatus.fromTossStatus(tossResponse.getStatus()))
+                .approveTime(parseTossTime(tossResponse.getApprovedAt()))
+                .build();
+
+        Payment saved = repository.save(payment);
+
+        // 3) 결제 성공(DONE)인 경우 구독 갱신 처리
+        if (saved.getPaymentStatus() == PaymentStatus.DONE) {
+            subscriptionService.processPayment(saved);
+        }
+
+        // 4) DTO 변환 후 반환
+        return mapper.toDto(saved);
+    }
+
+    private LocalDateTime parseTossTime(String time) {
+        // Toss 응답의 ISO-8601 문자열 → LocalDateTime 변환
+        return OffsetDateTime.parse(time).toLocalDateTime();
+    }
 }
-
-

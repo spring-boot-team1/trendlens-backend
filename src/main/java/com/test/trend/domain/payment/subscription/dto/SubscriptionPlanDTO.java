@@ -6,25 +6,26 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class SubscriptionPlanDTO {
 	
 	private Long seqSubscriptionPlan;
-	private Long seqAccount;
 
-    private String planName;
+	private String planName;
     private String planDescription;
 
-    private Integer monthlyFee;
+    private Long monthlyFee;
     private Integer durationMonth;
 
     private String status;
 
     private LocalDateTime createdAt;
-    private LocalDateTime updateAt;
+    private LocalDateTime updatedAt;
     
 }

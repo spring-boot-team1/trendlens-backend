@@ -11,8 +11,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,6 +23,7 @@ public class UserSubscriptionDTO {
 	private Long seqUserSub;
 	private Long seqAccount;
 	private Long seqSubscriptionPlan;
+	private String planName;
 	
 	private LocalDateTime startDate;
 	private LocalDateTime endDate;
@@ -31,7 +34,7 @@ public class UserSubscriptionDTO {
 	
 	@Enumerated(EnumType.STRING)
 	private SubscriptionStatus status;
-	private String cancelReason;
 	
+	private String cancelReason;
 	private LocalDateTime createdAt;
 }

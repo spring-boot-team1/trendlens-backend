@@ -1,41 +1,22 @@
 package com.test.trend.domain.payment.subscription.mapper;
 
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import com.test.trend.domain.payment.subscription.dto.UserSubscriptionDTO;
 import com.test.trend.domain.payment.subscription.entity.UserSubscription;
 
-@Component
-public class UserSubscriptionMapper {
+@Mapper(componentModel = "spring")
+public interface UserSubscriptionMapper {
 
-	public UserSubscriptionDTO toDto(UserSubscription entity) {
-		return UserSubscriptionDTO.builder()
-				.seqUserSub(entity.getSeqUserSub())
-				.seqAccount(entity.getSeqAccount())
-				.seqSubscriptionPlan(entity.getSeqSubscriptionPlan())
-	            .startDate(entity.getStartDate())
-	            .endDate(entity.getEndDate())
-	            .nextBillingDate(entity.getNextBillingDate())
-	            .autoRenewYn(entity.getAutoRenewYn())
-	            .status(entity.getStatus())
-	            .cancelReason(entity.getCancelReason())
-	            .createdAt(entity.getCreatedAt())
-				.build();
-	}
-	
-	public UserSubscription toEntity(UserSubscriptionDTO dto) {
-		return UserSubscription.builder()
-				.seqUserSub(dto.getSeqUserSub())
-				.seqAccount(dto.getSeqAccount())
-	            .seqSubscriptionPlan(dto.getSeqSubscriptionPlan())
-	            .startDate(dto.getStartDate())
-	            .endDate(dto.getEndDate())
-	            .nextBillingDate(dto.getNextBillingDate())
-	            .autoRenewYn(dto.getAutoRenewYn())
-	            .status(dto.getStatus())
-	            .cancelReason(dto.getCancelReason())
-	            .createdAt(dto.getCreatedAt())
-				.build();
-	}
-	
+	@Mapping(source = "subscriptionPlan.seqSubscriptionPlan", target = "seqSubscriptionPlan")
+    @Mapping(source = "subscriptionPlan.planName", target = "planName")
+    UserSubscriptionDTO toDto(UserSubscription entity);
+
+    /** Entity 생성 시 DTO → Entity 직접 매핑할 일 거의 없음 → ignore 처리 */
+    @Mapping(target = "subscriptionPlan", ignore = true)
+    @Mapping(target = "seqUserSub", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    UserSubscription toEntity(UserSubscriptionDTO dto);
+    
 }

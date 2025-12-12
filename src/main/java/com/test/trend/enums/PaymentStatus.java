@@ -3,6 +3,7 @@ package com.test.trend.enums;
 public enum PaymentStatus {
 
 	REQUESTED("결제 요청됨"),
+	PENDING("결제 진행 중"),
     APPROVED("내부 승인됨"),
     DONE("Toss 승인 완료"), 
     FAILED("결제 실패"),
@@ -19,17 +20,26 @@ public enum PaymentStatus {
         return description;
     }
     
-    // 🔥 문자열 → enum 변환 메서드 (매우 중요)
+ // 🔥 Toss → 우리 시스템 상태 변환
     public static PaymentStatus fromTossStatus(String status) {
+        if (status == null) return FAILED;
+
         switch (status.toUpperCase()) {
+            case "READY":
+            case "PENDING":
+                return PENDING;
+
             case "DONE":
                 return DONE;
+
             case "CANCELED":
                 return CANCELED;
+
             case "FAILED":
                 return FAILED;
+
             default:
-                return FAILED;  // Toss 미정의 상태 → 실패 처리
+                return FAILED; // Toss에서 예측 불가 상태 → 실패 처리
         }
     }
     

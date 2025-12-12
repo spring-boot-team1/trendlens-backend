@@ -25,24 +25,19 @@ public class SubscriptionPlan {
     @SequenceGenerator(name = "seqSubscriptionPlanGenerator", sequenceName = "seqSubscriptionPlan", allocationSize = 1)
     private Long seqSubscriptionPlan;
 	
-	// FK
-	private Long seqAccount;
-	
 	private String planName;
 	private String planDescription;
-	
-	private Integer monthlyFee;
-	private Integer durationMonth;
+	private Long monthlyFee;          // NUMBER(10,0)
+    private Integer durationMonth;
 	
 	private String status; //ACTIVE/INACTIVE
-	
 	private LocalDateTime createdAt;
-	private LocalDateTime updateAt;
+	private LocalDateTime updatedAt;
 	
-	// 상태 변경 메서드
+	/** 플랜 상태 변경 */
 	public void updateStatus(String newStatus) {
 		this.status = newStatus;
-		this.updateAt = LocalDateTime.now();
+		this.updatedAt = LocalDateTime.now();
 	}
 	
 }
