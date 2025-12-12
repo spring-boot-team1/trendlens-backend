@@ -52,6 +52,9 @@ spring:
 file:
   upload-dir: C:/code/temp
 
+selenium:
+  url:
+
 #Mybatis 설정
 #mybatis:
   #mapper-locations: classpath*:mapper/**/*.xml
@@ -82,3 +85,4 @@ server:
 springdoc:
   api-docs:
     enabled: true
+
