@@ -43,9 +43,6 @@ src/main/resources/secret.yaml
 
 ### 기타 파일
 ### 공용 파일 아니라서 일단 추가
-<<<<<<< HEAD
-docker-compose.yaml
-=======
 docker-compose.yaml
 
 
@@ -57,4 +54,3 @@ Wallet_*/
 *.pem
 sqlnet.ora
 tnsnames.ora
->>>>>>> 11021afce774a572077d7075fa2f10a16d44060a
