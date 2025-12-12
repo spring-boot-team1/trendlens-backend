@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.test.trend.domain.payment.payment.dto.PaymentDTO;
 import com.test.trend.domain.payment.payment.dto.toss.TossPaymentConfirmRequest;
+import com.test.trend.domain.payment.payment.dto.toss.TossPaymentConfirmResponse;
 import com.test.trend.domain.payment.payment.service.PaymentService;
 
 import lombok.RequiredArgsConstructor;
@@ -33,9 +34,11 @@ public class PaymentController {
      * - 클라이언트(Toss SDK)에서 받은 paymentKey, orderId, amount를 기반으로 승인 처리
      */
 	@PostMapping("/confirm")
-	public ResponseEntity<PaymentDTO> confirmPayment(@RequestBody TossPaymentConfirmRequest request) {
-		PaymentDTO result = service.confirmTossPayment(request);
-		return ResponseEntity.ok(result);
+	public ResponseEntity<PaymentDTO> confirmPayment(
+			@RequestBody TossPaymentConfirmRequest request
+	) {
+		PaymentDTO response = service.confirmTossPayment(request);
+        return ResponseEntity.ok(response);
 	}
 	
 	/**

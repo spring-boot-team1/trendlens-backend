@@ -32,4 +32,13 @@ public class PaymentDTO {
     private LocalDateTime cancelTime;
 
     private String failReason;
+    
+    // Toss 영수증 URL
+    private String receiptUrl;
+
+    // 카드 승인번호
+    private String cardApproveNo;
+
+    // 구독 갱신 결과 (추가)
+    private LocalDateTime nextBillingDate;
 }

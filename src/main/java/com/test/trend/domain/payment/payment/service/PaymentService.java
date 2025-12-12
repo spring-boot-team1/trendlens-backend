@@ -1,6 +1,7 @@
 package com.test.trend.domain.payment.payment.service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -108,19 +109,20 @@ public class PaymentService {
 	
 	public PaymentDTO confirmTossPayment(TossPaymentConfirmRequest request) {
 		
-		String auth = "Basic " + Base64.getEncoder()
-				.encodeToString((tossSecretKey + ":").getBytes());
+		// 1) Toss REST API 호출 (결제 승인)
+	    String auth = "Basic " + Base64.getEncoder()
+	            .encodeToString((tossSecretKey + ":").getBytes());
 		
 		// 1. Toss Payment 승인요청
 		TossPaymentConfirmResponse tossResponse = WebClient.create("https://api.tosspayments.com")
 				.post()
-				.uri("/v1/payments/confirm")
-				.header("Authorization", auth)
-				.header("Content-Type", "application/json")
-				.bodyValue(request)
-				.retrieve()
-				.bodyToMono(TossPaymentConfirmResponse.class)
-				.block();
+	            .uri("/v1/payments/confirm")
+	            .header("Authorization", auth)
+	            .header("Content-Type", "application/json")
+	            .bodyValue(request)
+	            .retrieve()
+	            .bodyToMono(TossPaymentConfirmResponse.class)
+	            .block();
 		
 		if (tossResponse == null) {
 			throw new IllegalStateException("Toss 결제 승인 응답이 null입니다.");
@@ -130,13 +132,14 @@ public class PaymentService {
 		
 		// 2. Toss 응답 → Payment 엔티티 생성
 		Payment payment = Payment.builder()
-				.paymentKey(tossResponse.getPaymentKey())
-				.orderId(tossResponse.getOrderId())
-				.paymentStatus(PaymentStatus.fromTossStatus(tossResponse.getStatus())) // DONE, CANCELED 등
-                .approveTime(LocalDateTime.parse(tossResponse.getApprovedAt()))
-                .paymentMethod(tossResponse.getMethod())
-                .amount(request.getAmount())
-				.build();
+	            .paymentKey(tossResponse.getPaymentKey())
+	            .orderId(tossResponse.getOrderId())
+	            .seqAccount(request.getSeqAccount()) // 반드시 필요!!
+	            .paymentStatus(PaymentStatus.fromTossStatus(tossResponse.getStatus()))
+	            .approveTime(parseTossTime(tossResponse.getApprovedAt()))
+	            .paymentMethod(tossResponse.getMethod())
+	            .amount(tossResponse.getTotalAmount()) // toss 응답의 totalAmount 사용
+	            .build();
 		
 		Payment saved = repository.save(payment);
 
@@ -145,6 +148,10 @@ public class PaymentService {
 		
         // 4. DB 저장 후 DTO로 변환
         return mapper.toDto(saved);
+	}
+
+	private LocalDateTime parseTossTime(String time) {
+	    return OffsetDateTime.parse(time).toLocalDateTime();
 	}
 
 }
