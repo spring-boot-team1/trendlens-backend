@@ -44,11 +44,8 @@ public class WeeklyInsightService {
         }
 
         //2. Top 콘텐츠 조회
-        List<ContentDetail> topContents = contentDetailRepo.findByKeywordString(
-                keyword.getKeyword(),
-                PageRequest.of(0,5)
-        );
-        
+        List<ContentDetail> topContents = contentDetailRepo.findTop5ByTargetUrlKeywordOrderByCrawledAtDesc(keyword);
+
         if (topContents.isEmpty()) {
             log.info("분석할 콘텐츠가 없습니다.: {}", keyword.getKeyword());
             return;
