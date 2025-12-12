@@ -68,7 +68,7 @@ public class SecurityConfig {
         */
         //허가 URL
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login").permitAll()     // 로그인은 항상 허용
+                .requestMatchers("/login", "/trend/actuator/**").permitAll()     // 로그인은 항상 허용
                 .requestMatchers("/auth-check", "/api/v1/logout").authenticated() //인증 필요 테스트 페이지
 //                .requestMatchers("/trend/**").permitAll()
                 .anyRequest().permitAll());
@@ -109,7 +109,9 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOriginPattern("http://localhost:5173"); //클라이언트 주소(패턴화, addAllowedOrigin보다 조금 더 유연)
+        config.addAllowedOrigin("https://trendslens.xyz");
+        config.addAllowedOrigin("https://www.trendslens.xyz"); //클라이언트 주소(패턴화, addAllowedOrigin보다 조금 더 유연)
+        config.addAllowedOrigin("https://api.trendslens.xyz");
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
         config.setAllowCredentials(true);
