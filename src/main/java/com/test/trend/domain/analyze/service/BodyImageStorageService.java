@@ -22,13 +22,13 @@ public class BodyImageStorageService {
 
     private String bucketName;
 
-    @Value("${custom.s3.base-prefix}")
+    @Value("${custom.s3.basePrefix}")
     private String basePrefix;         // uploads
 
-    @Value("${custom.s3.prefix.body-photo}")
+    @Value("${custom.s3.prefix.bodyPhoto}")
     private String bodyPhotoPrefix;    // body-photo
 
-    @Value("${custom.s3.url-prefix}")
+    @Value("${custom.s3.urlPrefix}")
     private String urlPrefix; // https://trendlens.s3.ap-northeast-2.amazonaws.com
 
     private String buildKey(Long seqAccount, String originFilename){
