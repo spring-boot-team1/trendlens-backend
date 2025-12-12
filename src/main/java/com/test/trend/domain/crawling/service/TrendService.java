@@ -117,12 +117,40 @@ public class TrendService {
     // DTO 변환 공통 메서드
     private List<TrendResponseDto> convertDto(List<TrendScore> scores) {
         return scores.stream()
-                .map(ts -> TrendResponseDto.builder()
-                        .seqKeyword(ts.getKeyword().getSeqKeyword())
-                        .keyword(ts.getKeyword().getKeyword())
-                        .category(ts.getKeyword().getCategory())
-                        .trendScore((int) Math.round(ts.getFinalScore()))
-                        .build())
+                .map(ts -> {
+                    // 1. 현재 점수
+                    int currentScore = (int) Math.round(ts.getFinalScore());
+
+                    // 2. 지난주 점수 (DB에 과거 데이터가 없으므로 시뮬레이션 로직 적용)
+                    // (나중에 DB에 데이터가 쌓이면 repo.findYesterdayScore(...)로 교체하면 됩니다)
+                    double fluctuation = 0.8 + (Math.random() * 0.4); // 0.8 ~ 1.2 배수
+                    long prevScore = (long) (currentScore * fluctuation);
+
+                    // 3. 상승률 계산
+                    double growthRate = 0.0;
+                    if (prevScore > 0) {
+                        growthRate = ((double) (currentScore - prevScore) / prevScore) * 100;
+                    }
+
+                    // 4. 상태 결정
+                    String status = "stable";
+                    if (growthRate > 5.0) status = "up";
+                    else if (growthRate < -5.0) status = "down";
+
+                    // 5. 요약 멘트 생성
+                    String aiSummary = ts.getKeyword().getKeyword() + " 키워드의 검색량이 변동하고 있습니다.";
+
+                    return TrendResponseDto.builder()
+                            .seqKeyword(ts.getKeyword().getSeqKeyword())
+                            .keyword(ts.getKeyword().getKeyword())
+                            .category(ts.getKeyword().getCategory())
+                            .trendScore(currentScore)
+                            .prevScore(prevScore)          // 추가됨
+                            .growthRate((double) Math.round(growthRate)) // 추가됨 (반올림)
+                            .status(status)                // 추가됨
+                            .aiSummary(aiSummary)          // 추가됨
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 }
