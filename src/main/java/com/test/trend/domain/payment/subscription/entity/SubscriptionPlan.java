@@ -2,7 +2,11 @@ package com.test.trend.domain.payment.subscription.entity;
 
 import java.time.LocalDateTime;
 
+import com.test.trend.enums.SubscriptionStatus;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,12 +34,14 @@ public class SubscriptionPlan {
 	private Long monthlyFee;          // NUMBER(10,0)
     private Integer durationMonth;
 	
-	private String status; //ACTIVE/INACTIVE
+    @Enumerated(EnumType.STRING)
+	private SubscriptionStatus status; //ACTIVE/INACTIVE
+    
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 	
 	/** 플랜 상태 변경 */
-	public void updateStatus(String newStatus) {
+	public void updateStatus(SubscriptionStatus newStatus) {
 		this.status = newStatus;
 		this.updatedAt = LocalDateTime.now();
 	}

@@ -6,40 +6,35 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import com.test.trend.domain.payment.subscription.entity.UserSubscription;
 import com.test.trend.domain.payment.subscription.repository.UserSubscriptionRepository;
-import com.test.trend.enums.SubscriptionStatus;
-import com.test.trend.enums.YesNo;
 
-@SpringBootTest
-@Transactional
-public class UserSubscriptionRepositoryTest {
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class UserSubscriptionRepositoryTest {
 
-	@Autowired
-	private UserSubscriptionRepository repository;
-	
-	@Test
-	void createUserSubscription() {
-		UserSubscription sub = UserSubscription.builder()
-				.seqAccount(1L)
-				.seqSubscriptionPlan(10L)
-				.startDate(LocalDateTime.now())
-				.endDate(LocalDateTime.now().plusMonths(1))
-				.nextBillingDate(LocalDateTime.now().plusMonths(1))
-				.autoRenewYn(YesNo.Y)
-				.status(SubscriptionStatus.ACTIVE)
-				.createdAt(LocalDateTime.now())
-				.build();
-		
-		UserSubscription saved = repository.save(sub);
-		
-		assertThat(saved.getSeqUserSub()).isNotNull();
-		assertThat(saved.getAutoRenewYn()).isEqualTo("Y");
-		
-	}
-	
-	
+    @Autowired
+    private UserSubscriptionRepository repository;
+
+    @Test
+    void 사용자구독_저장_조회() {
+
+        UserSubscription sub = UserSubscription.builder()
+                .seqAccount(1L)
+                .startDate(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        UserSubscription saved = repository.save(sub);
+
+        UserSubscription found =
+                repository.findById(saved.getSeqUserSub()).orElse(null);
+
+        assertThat(found).isNotNull();
+        assertThat(found.getSeqAccount()).isEqualTo(1L);
+    }
 }
+

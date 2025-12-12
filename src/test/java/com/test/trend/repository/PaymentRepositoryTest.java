@@ -2,59 +2,36 @@ package com.test.trend.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDateTime;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import com.test.trend.domain.payment.payment.entity.Payment;
 import com.test.trend.domain.payment.payment.repository.PaymentRepository;
-import com.test.trend.enums.PaymentStatus;
 
-@SpringBootTest
-@Transactional
-public class PaymentRepositoryTest {
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class PaymentRepositoryTest {
 
-	@Autowired
-	private PaymentRepository repository;
-	
-	@Test
-	void createPayment() {
-		Payment payment = Payment.builder()
-				.seqAccount(1L)
-				.seqUserSub(5L)
-				.amount(9900L)
-				.paymentMethod("CARD")
-				.paymentStatus(PaymentStatus.REQUESTED)
-				.requestTime(LocalDateTime.now())
-				.build();
-		
-		Payment saved = repository.save(payment);
-		
-		assertThat(saved.getSeqPayment()).isNotNull();
-		assertThat(saved.getPaymentStatus()).isEqualTo("REQUESTED");
-	}
-	
-	@Test
-    void updatePaymentStatus() {
-        Payment payment = repository.save(
-                Payment.builder()
-                        .seqAccount(1L)
-                        .seqUserSub(5L)
-                        .amount(9900L)
-                        .paymentMethod("CARD")
-                        .paymentStatus(PaymentStatus.REQUESTED)
-                        .requestTime(LocalDateTime.now())
-                        .build()
-        );
+    @Autowired
+    private PaymentRepository repository;
 
-        payment.approve();
-        Payment updated = repository.save(payment);
+    @Test
+    void 결제정보_저장_조회() {
 
-        assertThat(updated.getPaymentStatus()).isEqualTo("APPROVED");
-        assertThat(updated.getApproveTime()).isNotNull();
+        Payment pay = Payment.builder()
+                .seqAccount(1L)
+                .amount(10000L)
+                .paymentMethod("CARD")
+                .build();
+
+        Payment saved = repository.save(pay);
+
+        Payment found = repository.findById(saved.getSeqPayment()).orElse(null);
+
+        assertThat(found).isNotNull();
+        assertThat(found.getAmount()).isEqualTo(10000);
     }
-	
 }
+

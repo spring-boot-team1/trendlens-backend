@@ -1,5 +1,7 @@
 package com.test.trend.domain.payment.payment.dto.toss;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,8 +17,8 @@ public class TossPaymentConfirmResponse {
     private String orderId;
     private String status;
 
-    private String requestedAt;
-    private String approvedAt;
+    private LocalDateTime requestedAt;
+    private LocalDateTime approvedAt;
     private Long totalAmount;
     private String method;
 

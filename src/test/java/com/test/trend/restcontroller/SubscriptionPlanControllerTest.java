@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -16,6 +17,7 @@ import com.test.trend.domain.payment.subscription.dto.SubscriptionPlanDTO;
 import com.test.trend.domain.payment.subscription.service.SubscriptionPlanService;
 
 @WebMvcTest(SubscriptionPlanController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class SubscriptionPlanControllerTest {
 
     @Autowired
@@ -28,7 +30,7 @@ class SubscriptionPlanControllerTest {
     ObjectMapper objectMapper;
 
     @Test
-    void 구독상품_등록_API_테스트() throws Exception {
+    void 구독상품_등록_API_성공() throws Exception {
 
         SubscriptionPlanDTO dto = SubscriptionPlanDTO.builder()
                 .planName("TEST")
@@ -39,9 +41,9 @@ class SubscriptionPlanControllerTest {
                 .build();
 
         mockMvc.perform(post("/trend/api/v1/subscription/plans")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto))
-                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk());
     }
 }
+

@@ -9,6 +9,7 @@ import com.test.trend.domain.payment.subscription.dto.SubscriptionPlanDTO;
 import com.test.trend.domain.payment.subscription.entity.SubscriptionPlan;
 import com.test.trend.domain.payment.subscription.mapper.SubscriptionPlanMapper;
 import com.test.trend.domain.payment.subscription.repository.SubscriptionPlanRepository;
+import com.test.trend.enums.SubscriptionStatus;
 
 import lombok.RequiredArgsConstructor;
 
@@ -76,7 +77,7 @@ public class SubscriptionPlanService {
         SubscriptionPlan entity = repository.findById(seqSubscriptionPlan)
                 .orElseThrow(() -> new IllegalArgumentException("SubscriptionPlan not found"));
 
-        entity.updateStatus(newStatus);
+        entity.updateStatus(SubscriptionStatus.valueOf(newStatus));
         return mapper.toDto(entity);
     }
 }

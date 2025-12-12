@@ -97,19 +97,21 @@ public class UserSubscriptionService {
      *
      * @param payment 승인된 결제 정보
      */
-    public void processPayment(Payment payment) {
+    public UserSubscription processPayment(Payment payment) {
 
         Long seqAccount = payment.getSeqAccount();
 
         // ACTIVE 구독 조회 (없으면 새로 생성)
-        UserSubscription subscription = userRepository
-                .findActiveBySeqAccount(seqAccount)
-                .orElseGet(() -> createNewSubscription(seqAccount));
+        UserSubscription subscription =
+        		userRepository.findActiveBySeqAccount(seqAccount)
+                    .orElseGet(() -> createNewSubscription(seqAccount));
 
         // 현재 구독에 연결된 플랜 기준으로 기간 연장
         SubscriptionPlan plan = subscription.getSeqSubscriptionPlan();
         int months = plan.getDurationMonth();
         subscription.extendBillingDate(months);
+        
+        return subscription;
     }
 
     /**

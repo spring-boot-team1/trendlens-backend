@@ -71,8 +71,15 @@ public class UserSubscription {
 	
 	 /** 정기 결제 성공 시 기간 연장 */
     public void extendBillingDate(int months) {
-        this.endDate = this.endDate.plusMonths(months);
-        this.nextBillingDate = this.nextBillingDate.plusMonths(months);
+        if (months <= 0) {
+            throw new IllegalArgumentException("months must be positive");
+        }
+
+        LocalDateTime base = (nextBillingDate != null)
+                ? nextBillingDate
+                : (startDate != null ? startDate : LocalDateTime.now());
+
+        this.nextBillingDate = base.plusMonths(months);
     }
 	
     /** 구독 취소(즉시 해지 아님, autoRenewYn만 off) */
@@ -88,7 +95,6 @@ public class UserSubscription {
     }
 
 	public void updateStatus(SubscriptionStatus canceled) {
-		// TODO Auto-generated method stub
 		
 	}
 }
