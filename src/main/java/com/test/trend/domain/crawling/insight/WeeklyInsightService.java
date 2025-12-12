@@ -3,9 +3,11 @@ package com.test.trend.domain.crawling.insight;
 import com.test.trend.domain.crawling.content.ContentDetail;
 import com.test.trend.domain.crawling.content.ContentDetailRepository;
 import com.test.trend.domain.crawling.keyword.Keyword;
+import com.test.trend.domain.crawling.util.DateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -33,7 +35,7 @@ public class WeeklyInsightService {
 
     @Transactional
     public void createWeeklyInsight(Keyword keyword) {
-        String weekCode = generateWeekCode(LocalDate.now());
+        String weekCode = DateUtil.currentWeekCode();
 
         //1. 중복 확인
         if (weeklyInsightRepo.findByKeywordAndWeekCode(keyword, weekCode).isPresent()) {
@@ -42,7 +44,11 @@ public class WeeklyInsightService {
         }
 
         //2. Top 콘텐츠 조회
-        List<ContentDetail> topContents = contentDetailRepo.findTop5ByTargetUrlKeywordOrderByCrawledAtDesc(keyword);
+        List<ContentDetail> topContents = contentDetailRepo.findByKeywordString(
+                keyword.getKeyword(),
+                PageRequest.of(0,5)
+        );
+        
         if (topContents.isEmpty()) {
             log.info("분석할 콘텐츠가 없습니다.: {}", keyword.getKeyword());
             return;
@@ -72,7 +78,6 @@ public class WeeklyInsightService {
 
         weeklyInsightRepo.save(insight);
         log.info("Gemini Insight 저장 완료: {}", insight.getKeyword());
-
     }
 
     private String buildPrompt(String keyword, List<ContentDetail> contents) {
@@ -133,10 +138,5 @@ public class WeeklyInsightService {
             return new String[]{cleanText, "추천 팁을 생성하지 못했습니다."};
         }
         return new String[]{split[0].trim(), split[1].trim()};
-    }
-    private String generateWeekCode(LocalDate date) {
-        int year = date.get(IsoFields.WEEK_BASED_YEAR);
-        int week = date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-        return String.format("%d-W%02d", year, week);
     }
 }

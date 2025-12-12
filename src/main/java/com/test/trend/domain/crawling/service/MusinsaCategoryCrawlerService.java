@@ -1,8 +1,7 @@
 package com.test.trend.domain.crawling.service;
 
-import com.test.trend.domain.crawling.keyword.KeywordRepository;
 import com.test.trend.domain.crawling.keyword.RisingKeywordDto;
-import org.jsoup.internal.StringUtil;
+
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -30,14 +29,8 @@ import org.springframework.util.StringUtils;
 @Service
 public class MusinsaCategoryCrawlerService {
 
-    private final KeywordRepository keywordRepo;
-
     @Value("${selenium.url:}")
     private String seleniumUrl;
-
-    public MusinsaCategoryCrawlerService(KeywordRepository keywordRepository) {
-        this.keywordRepo = keywordRepository;
-    }
 
     public List<RisingKeywordDto> crawlRisingKeywords() {
         List<RisingKeywordDto> result = new ArrayList<>();
