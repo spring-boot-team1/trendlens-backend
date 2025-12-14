@@ -14,6 +14,9 @@ public interface TrendScoreRepository extends JpaRepository<TrendScore, Long>{
 
     Optional<TrendScore> findByKeywordAndBaseDate(Keyword keyword, LocalDate baseDate);
 
+    @Query("SELECT MAX(ts.baseDate) FROM TrendScore ts")
+    LocalDate findLatestBaseDate();
+
     @Query("SELECT ts FROM TrendScore ts JOIN FETCH ts.keyword WHERE ts.baseDate = :date ORDER BY ts.finalScore DESC")
     List<TrendScore> findDailyRank(@Param("date") LocalDate date, Pageable pageable);
 

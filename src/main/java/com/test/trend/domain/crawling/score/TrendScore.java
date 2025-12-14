@@ -46,4 +46,8 @@ public class TrendScore {
 	
 	private LocalDateTime createdAt;
 
+    private Long PrevScore;
+    private Double growthRate;
+    private String status;
+
 }

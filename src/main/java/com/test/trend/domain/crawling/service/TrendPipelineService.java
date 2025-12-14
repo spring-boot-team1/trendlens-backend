@@ -26,10 +26,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TrendPipelineService {
 
-    // crawling
+    //service
     private final MusinsaCategoryCrawlerService musinsaService;
     private final SearchApiService searchApiService;
     private final JsoupCrawlerService jsoupService;
+
     private final ContentDetailRepository contentDetailRepo;
     private final KeywordRepository keywordRepo;
     private final TargetUrlRepository targetUrlRepo;

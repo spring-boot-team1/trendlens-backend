@@ -10,7 +10,7 @@ import com.test.trend.domain.crawling.keyword.KeywordRepository;
 import com.test.trend.domain.crawling.score.TrendScore;
 import com.test.trend.domain.crawling.score.TrendScoreRepository;
 import com.test.trend.domain.crawling.util.DateUtil;
-import com.test.trend.enums.YesNo;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -96,24 +96,20 @@ public class TrendService {
     @Transactional(readOnly = true)
     public List<TrendResponseDto> getGuestTop5() {
 
-        // 1️⃣ Active 키워드 수 확인 (진단용)
-        List<Keyword> active = keywordRepo.findByIsActive(YesNo.Y);
-        log.info("[GuestTop5] active keywords size={}", active.size());
+        LocalDate targetDate = trendScoreRepo.findLatestBaseDate();
 
-        // 2️⃣ TrendScore 전체 개수 확인
-        long scoreCount = trendScoreRepo.count();
-        log.info("[GuestTop5] trendScore count={}", scoreCount);
-
-        // ❗ 여기서 0이면 → DB에 점수 데이터가 없는 거임
-        if (scoreCount == 0) {
+        // 데이터가 아예 없으면 빈 리스트 반환 (반어 코드)
+        if (targetDate == null) {
             log.warn("[GuestTop5] TrendScore 테이블에 데이터 없음");
             return Collections.emptyList();
         }
 
+        log.info("[GuestTop5] 조회 기준 날짜: {}", targetDate);
+
         // 3️⃣ 오늘 날짜 기준 TOP 5 조회
         List<TrendScore> scores =
                 trendScoreRepo.findDailyRank(
-                        LocalDate.now(),
+                        targetDate,
                         PageRequest.of(0, 5)
                 );
 
@@ -137,13 +133,17 @@ public class TrendService {
             return Collections.emptyList();
         }
 
-        // 2. 해당 키워드들의 오늘자 TrendScore 조회
-        List<TrendScore> scores = trendScoreRepo.findByKeywordInAndBaseDate(myKeywords, LocalDate.now());
 
+        // 2. 날짜 로직
+        LocalDate targetDate = trendScoreRepo.findLatestBaseDate();
+        if(targetDate == null) targetDate = LocalDate.now();
+
+        List<TrendScore> scores = trendScoreRepo.findByKeywordInAndBaseDate(myKeywords, targetDate);
         // 3. DTO 변환 후 반환
         return convertDto(scores);
     }
 
+    // DTO 변환 공통 메서드
     // DTO 변환 공통 메서드
     private List<TrendResponseDto> convertDto(List<TrendScore> scores) {
         return scores.stream()
@@ -151,33 +151,35 @@ public class TrendService {
                     // 1. 현재 점수
                     int currentScore = (int) Math.round(ts.getFinalScore());
 
-                    // 2. 지난주 점수 (DB에 과거 데이터가 없으므로 시뮬레이션 로직 적용)
-                    // (나중에 DB에 데이터가 쌓이면 repo.findYesterdayScore(...)로 교체하면 됩니다)
-                    double fluctuation = 0.8 + (Math.random() * 0.4); // 0.8 ~ 1.2 배수
-                    long prevScore = (long) (currentScore * fluctuation);
+                    // 2. 지난주 점수 (DB 값 사용)
+                    // null이면 0으로 처리
+                    long prevScore = (ts.getPrevScore() != null) ? ts.getPrevScore() : 0L;
 
-                    // 3. 상승률 계산
-                    double growthRate = 0.0;
-                    if (prevScore > 0) {
-                        growthRate = ((double) (currentScore - prevScore) / prevScore) * 100;
-                    }
+                    // 3. 상승률 (DB 값 사용)
+                    // null이면 0.0으로 처리
+                    double growthRate = (ts.getGrowthRate() != null) ? ts.getGrowthRate() : 0.0;
 
-                    // 4. 상태 결정
-                    String status = "stable";
-                    if (growthRate > 5.0) status = "up";
-                    else if (growthRate < -5.0) status = "down";
+                    // 4. 상태 (DB 값 사용)
+                    // null이면 "stable"로 처리
+                    String status = (ts.getStatus() != null) ? ts.getStatus() : "stable";
 
                     // 5. 요약 멘트 생성
-                    String aiSummary = ts.getKeyword().getKeyword() + " 키워드의 검색량이 변동하고 있습니다.";
+                    // 실제 데이터를 반영한 멘트로 변경
+                    String trendDescription = (growthRate > 0) ? "상승" : (growthRate < 0 ? "하락" : "유지");
+                    String aiSummary = String.format("%s 키워드는 전일 대비 %.1f%% %s하는 추세입니다.",
+                            ts.getKeyword().getKeyword(), Math.abs(growthRate), trendDescription);
 
                     return TrendResponseDto.builder()
                             .seqKeyword(ts.getKeyword().getSeqKeyword())
                             .keyword(ts.getKeyword().getKeyword())
                             .category(ts.getKeyword().getCategory())
                             .trendScore(currentScore)
+
+                            // 👇 계산 로직 없이 DB 값 그대로 매핑
                             .prevScore(prevScore)
-                            .growthRate((double) Math.round(growthRate)) // 추가됨 (반올림)
+                            .growthRate(growthRate)
                             .status(status)
+
                             .aiSummary(aiSummary)
                             .imgUrl(ts.getKeyword().getImgUrl())
                             .build();
