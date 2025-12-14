@@ -9,5 +9,5 @@ public class RisingKeywordDto {
 
     private final String keyword;
     private final String category;
-
+    private final String imgUrl;
 }

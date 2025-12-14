@@ -48,36 +48,84 @@ public class MusinsaCategoryCrawlerService {
             JavascriptExecutor js = (JavascriptExecutor) driver;
             for (int i = 0; i < 3; i++) {
                 js.executeScript("window.scrollBy(0, 1000)");
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             }
 
             // href에 'goods' 또는 'products'가 포함된 a 태그 찾기
-            List<ProductInfo> productInfos = new ArrayList<>();
             List<WebElement> elements = driver.findElements(By.cssSelector("a[href*='/goods/'], a[href*='/products/']"));
 
             System.out.println(">>> [Debug] 발견된 링크 개수: " + elements.size());
 
+            List<ProductInfo> productInfos = new ArrayList<>();
             List<String> visitedTitles = new ArrayList<>(); // 중복 방지용
 
             for (WebElement el : elements) {
                 if (productInfos.size() >= 20) break;
 
-                // 1. 키워드(상품명) 추출
-                // 유효성 검사 (광고, 좋아요 버튼 등 제외)
-                String title = el.getAttribute("title");
-                if (title == null || title.isBlank()) title = el.getText();
-                String href = el.getAttribute("href");
+                try {
+                    // [핵심 수정] 클래스 이름(.list_img 등)을 쓰지 않고 태그 구조로만 찾음
 
-                // 필터링
-                if (href == null || href.contains("/like/") || href.contains("/cart/") || href.contains("/reviews")) continue;
-                if (title == null || title.length() <= 1) continue;
+                    // 1. 이미지 URL 추출
+                    String imgUrl = "";
+                    try {
+                        // a 태그 하위에 있는 img 태그를 찾음 (깊이 상관없이 찾음)
+                        WebElement imgEl = el.findElement(By.tagName("img"));
 
-                title = title.replaceAll("\n", " ").trim();
+                        // 스크린샷에 src가 있으므로 src 우선, 없으면 data-original 확인
+                        imgUrl = imgEl.getAttribute("src");
+                        if (!StringUtils.hasText(imgUrl)) {
+                            imgUrl = imgEl.getAttribute("data-original");
+                        }
 
-                if (!visitedTitles.contains(title)) {
-                    visitedTitles.add(title);
-                    productInfos.add(new ProductInfo(title, href)); // URL 저장
+                        // "//image.msscdn.net" 으로 시작하면 "https:" 붙여주기
+                        if (StringUtils.hasText(imgUrl) && imgUrl.startsWith("//")) {
+                            imgUrl = "https:" + imgUrl;
+                        }
+                    } catch (NoSuchElementException ne) {
+                        // 이미지가 없는 링크(텍스트만 있는 경우)는 무시
+                        continue;
+                    }
 
+                    // 2. 상품명 추출
+                    String title = el.getAttribute("title"); // a태그의 title 속성 시도
+                    if (!StringUtils.hasText(title)) {
+                        // 없으면 이미지 태그의 alt 속성 시도 (스크린샷에 alt가 보임!)
+                        try {
+                            WebElement imgEl = el.findElement(By.tagName("img"));
+                            title = imgEl.getAttribute("alt");
+                        } catch (Exception ignored) {}
+                    }
+                    if (!StringUtils.hasText(title)) {
+                        title = el.getText(); // 그래도 없으면 텍스트
+                    }
+
+                    if (StringUtils.hasText(title)) {
+                        title = title.replace("상품 이미지", "")
+                                .replaceAll("\n", " ")
+                                .trim();
+                    }
+
+                    // 3. 링크 추출
+                    String href = el.getAttribute("href");
+
+                    // 필터링
+                    if (href == null || href.contains("/like/") || href.contains("/cart/") || href.contains("/reviews")) continue;
+                    if (!StringUtils.hasText(title) || title.length() <= 1) continue;
+                    if (!StringUtils.hasText(imgUrl)) continue; // 이미지가 없으면 저장 안 함 (인사이트 화면용이라 필수)
+
+                    title = title.replaceAll("\n", " ").trim();
+
+                    if (!visitedTitles.contains(title)) {
+                        visitedTitles.add(title);
+                        productInfos.add(new ProductInfo(title, href, imgUrl));
+                        System.out.println("   -> [수집] " + title); // 디버깅용
+                    }
+
+                } catch (StaleElementReferenceException e) {
+                    // 스크롤 등으로 DOM이 변경되어 요소를 잃어버린 경우 건너뜀
+                    System.out.println("   [Pass] 요소가 변경됨 (Stale)");
+                } catch (Exception e) {
+                    System.out.println("   [Error] 개별 파싱 실패: " + e.getMessage());
                 }
             }
 
@@ -91,16 +139,14 @@ public class MusinsaCategoryCrawlerService {
                     category = detectCategoryByKeyword(info.title);
                 }
 
-                result.add(new RisingKeywordDto(info.title, category));
-                System.out.println(" + 완료: [" + category + "]" + info.title);
+                result.add(new RisingKeywordDto(info.title, category, info.imgUrl));
+                System.out.println(" + 완료: [" + category + "]" + info.title + "(Img: " + (StringUtils.hasText(info.imgUrl) ? "O" : "X") + ")");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (driver != null) {
-                driver.quit();
-            }
+            if (driver != null) driver.quit();
         }
 
         return result;
@@ -196,10 +242,12 @@ public class MusinsaCategoryCrawlerService {
     private static class ProductInfo {
         String title;
         String url;
+        String imgUrl;
 
-        public ProductInfo(String title, String url) {
+        public ProductInfo(String title, String url, String imgUrl) {
             this.title = title;
             this.url = url;
+            this.imgUrl = imgUrl;
         }
     }
 
@@ -228,11 +276,16 @@ public class MusinsaCategoryCrawlerService {
                 .replaceAll("\\s+", " ")
                 .trim();
 
+        if (lower.contains("뷰티") || lower.contains("향수")) {
+            return "뷰티";
+        }
+
+
         // ===== 상의 =====
         if (lower.contains("맨투맨") || lower.contains("후드") || lower.contains("후디")
                 || lower.contains("티셔츠") || lower.contains("티셔쯔") // 오타 방어용
                 || lower.contains("t셔츠") || lower.contains("t셔츠")
-                || lower.contains("t-shirt") || lower.contains("tee") || lower.contains("티") || lower.contains("반팔")
+                || lower.contains("t-shirt") || lower.contains("tee") || lower.contains("반팔")
                 || lower.contains("셔츠") || lower.contains("shirt")
                 || lower.contains("니트") || lower.contains("knit")
                 || lower.contains("가디건") || lower.contains("cardigan")

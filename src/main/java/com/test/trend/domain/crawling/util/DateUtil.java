@@ -12,7 +12,7 @@ public class DateUtil {
             DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public static final DateTimeFormatter WEEK_CODE_FORMAT =
-            DateTimeFormatter.ofPattern("YYYY'W'ww"); // 2025W10
+            DateTimeFormatter.ofPattern("YYYY'-W'ww"); // 2025-W10
 
     // 네이버 뉴스 pubDate 예: "Thu, 04 Dec 2025 14:22:00 +0900"
     private static final DateTimeFormatter NAVER_PUBDATE_FORMAT =

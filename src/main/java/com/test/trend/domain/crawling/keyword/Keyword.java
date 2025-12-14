@@ -26,6 +26,7 @@ public class Keyword {
 	private Long seqKeyword;
 	private String keyword;
 	private String category;
+    private String imgUrl;
 	
 	@Enumerated(EnumType.STRING)
 	private YesNo isActive = YesNo.Y;

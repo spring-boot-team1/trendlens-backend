@@ -48,18 +48,15 @@ public class TrendPipelineService {
         // 1) 무신사에서 (키워드 + 카테고리) 목록 가져오기
         List<RisingKeywordDto> risingKeywords = musinsaService.crawlRisingKeywords();
 
-        if (risingKeywords.size() > 3) {
-            risingKeywords = risingKeywords.subList(0, 3);
-        }
-
         for (RisingKeywordDto rk : risingKeywords) {
             String keywordStr = rk.getKeyword();   // 예: "나이키 맨투맨"
             String category = rk.getCategory();    // 예: "상의"
+            String imgUrl = rk.getImgUrl();
 
             System.out.println(">>> [Pipeline] 키워드 처리 시작: " + keywordStr);
 
             // 2) Keyword 테이블에 저장 / 재사용 (ID 확보)
-            Keyword keywordEntity = getOrCreateKeyword(keywordStr, category);
+            Keyword keywordEntity = getOrCreateKeyword(keywordStr, category, imgUrl);
             Long seqKeyword = keywordEntity.getSeqKeyword();
 
             // 3) 네이버 블로그 검색 (URL 확보)
@@ -171,20 +168,24 @@ public class TrendPipelineService {
 
 
     // 키워드가 있으면 가져오고, 없으면 새로 저장하는 메서드
-    private Keyword getOrCreateKeyword(String keywordStr, String category) {
+    private Keyword getOrCreateKeyword(String keywordStr, String category, String imgUrl) {
         return keywordRepo.findByKeyword(keywordStr)
                 .map(existing -> {
                     // 기존 키워드에 카테고리가 비어있으면 업데이트
                     if (category != null && !category.equals("기타")) {
                         existing.setCategory(category);
                     }
-                    return existing;
+                    if (imgUrl != null && !imgUrl.isBlank()) {
+                        existing.setImgUrl(imgUrl);
+                    }
+                    return keywordRepo.save(existing);
                 })
                 .orElseGet(() -> {
                     // 없으면 새로 생성
                     Keyword k = new Keyword();
                     k.setKeyword(keywordStr);
-                    k.setCategory(category);  // 상의 / 하의 / 신발 등
+                    k.setCategory(category);
+                    k.setImgUrl(imgUrl);// 상의 / 하의 / 신발 등
                     k.setIsActive(YesNo.Y);
                     return keywordRepo.save(k);
                 });

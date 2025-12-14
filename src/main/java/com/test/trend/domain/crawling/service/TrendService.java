@@ -2,16 +2,17 @@ package com.test.trend.domain.crawling.service;
 
 import com.test.trend.domain.crawling.insight.WeeklyInsight;
 import com.test.trend.domain.crawling.insight.WeeklyInsightRepository;
-import com.test.trend.domain.crawling.interest.AccountKeyword;
 import com.test.trend.domain.crawling.interest.AccountKeywordRepository;
-import com.test.trend.domain.crawling.interest.InsightResponseDto;
+import com.test.trend.domain.crawling.insight.InsightResponseDto;
 import com.test.trend.domain.crawling.interest.TrendResponseDto;
 import com.test.trend.domain.crawling.keyword.Keyword;
 import com.test.trend.domain.crawling.keyword.KeywordRepository;
 import com.test.trend.domain.crawling.score.TrendScore;
 import com.test.trend.domain.crawling.score.TrendScoreRepository;
 import com.test.trend.domain.crawling.util.DateUtil;
+import com.test.trend.enums.YesNo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TrendService {
@@ -68,6 +70,7 @@ public class TrendService {
                         .seqKeyword(k.getSeqKeyword())
                         .keyword(k.getKeyword())
                         .category(k.getCategory())
+                        .imgUrl(k.getImgUrl())
                         .summary(insightOpt.get().getSummaryTxt())
                         .stylingTip(insightOpt.get().getStylingTip())
                         .hasInsight(true) // 프론트에서 "분석됨" 표시 가능
@@ -92,10 +95,37 @@ public class TrendService {
     // 2. 비로그인용 Top 5 조회
     @Transactional(readOnly = true)
     public List<TrendResponseDto> getGuestTop5() {
-        // 상위 5위만 가져오기
-        List<TrendScore> scores = trendScoreRepo.findDailyRank(LocalDate.now(), PageRequest.of(0, 5));
-        return convertDto(scores);
+
+        // 1️⃣ Active 키워드 수 확인 (진단용)
+        List<Keyword> active = keywordRepo.findByIsActive(YesNo.Y);
+        log.info("[GuestTop5] active keywords size={}", active.size());
+
+        // 2️⃣ TrendScore 전체 개수 확인
+        long scoreCount = trendScoreRepo.count();
+        log.info("[GuestTop5] trendScore count={}", scoreCount);
+
+        // ❗ 여기서 0이면 → DB에 점수 데이터가 없는 거임
+        if (scoreCount == 0) {
+            log.warn("[GuestTop5] TrendScore 테이블에 데이터 없음");
+            return Collections.emptyList();
+        }
+
+        // 3️⃣ 오늘 날짜 기준 TOP 5 조회
+        List<TrendScore> scores =
+                trendScoreRepo.findDailyRank(
+                        LocalDate.now(),
+                        PageRequest.of(0, 5)
+                );
+
+        log.info("[GuestTop5] daily rank size={}", scores.size());
+
+        // 4️⃣ DTO 변환
+        List<TrendResponseDto> result = convertDto(scores);
+        log.info("[GuestTop5] result size={}", result.size());
+
+        return result;
     }
+
 
     // 3. 로그인 회원용 관심 키워드 랭킹 조회
     @Transactional(readOnly = true)
@@ -145,10 +175,11 @@ public class TrendService {
                             .keyword(ts.getKeyword().getKeyword())
                             .category(ts.getKeyword().getCategory())
                             .trendScore(currentScore)
-                            .prevScore(prevScore)          // 추가됨
+                            .prevScore(prevScore)
                             .growthRate((double) Math.round(growthRate)) // 추가됨 (반올림)
-                            .status(status)                // 추가됨
-                            .aiSummary(aiSummary)          // 추가됨
+                            .status(status)
+                            .aiSummary(aiSummary)
+                            .imgUrl(ts.getKeyword().getImgUrl())
                             .build();
                 })
                 .collect(Collectors.toList());

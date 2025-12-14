@@ -10,4 +10,6 @@ public interface WeeklyInsightRepository extends JpaRepository<WeeklyInsight, Lo
     Optional<WeeklyInsight> findByKeywordAndWeekCode(Keyword keyword, String weekCode);
 
     Optional<WeeklyInsight> findFirstByKeywordOrderByWeekCodeDesc(Keyword k);
+
+    boolean existsByKeywordAndWeekCode(Keyword keyword, String weekCode);
 }

@@ -25,7 +25,7 @@ public class JsoupCrawlerService {
     
     private static final List<String> SPAM_WORDS = Arrays.asList(
             "대출", "수익", "원고료", "협찬", "소정의", "문의", "상담", "가입",
-            "맛집", "시술"
+            "맛집", "시술", "수수료"
     );
 
     public CrawledResult verifyAndGetContent(String url) {

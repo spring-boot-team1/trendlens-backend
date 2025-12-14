@@ -16,7 +16,7 @@ public class TrendResponseDto {
     private String aiStylingTip;
 
     //시각자료
-    private String thumbnail;
+    private String imgUrl;
 
     //트렌드 점수(랭킹)
     private int trendScore;

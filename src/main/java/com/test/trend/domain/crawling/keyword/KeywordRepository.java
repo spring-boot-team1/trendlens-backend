@@ -1,5 +1,6 @@
 package com.test.trend.domain.crawling.keyword;
 
+import com.test.trend.enums.YesNo;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,5 +27,7 @@ public interface KeywordRepository extends JpaRepository<Keyword, Long>{
     List<Keyword> findTopTrends(Pageable pageable);
 
     Keyword findFirstByKeywordContaining(String searchKeyword);
+
+    List<Keyword> findByIsActive(YesNo isActive);
 }
 

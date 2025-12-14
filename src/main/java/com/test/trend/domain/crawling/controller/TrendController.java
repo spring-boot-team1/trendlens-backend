@@ -1,7 +1,7 @@
 package com.test.trend.domain.crawling.controller;
 
 
-import com.test.trend.domain.crawling.interest.InsightResponseDto;
+import com.test.trend.domain.crawling.insight.InsightResponseDto;
 import com.test.trend.domain.crawling.interest.TrendResponseDto;
 import com.test.trend.domain.crawling.service.TrendService;
 import io.swagger.v3.oas.annotations.Operation;
