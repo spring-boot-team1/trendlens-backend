@@ -86,6 +86,14 @@ springdoc:
   api-docs:
     enabled: true
 
+custom:
+  s3:
+    basePrefix: uploads
+    prefix:
+      bodyPhoto: body-photo
+      profilepic: profilepic
+    urlPrefix: https://trendlens.s3.ap-northeast-2.amazonaws.com
+
 #CORS 설정
 cors:
   allowed-origins:
