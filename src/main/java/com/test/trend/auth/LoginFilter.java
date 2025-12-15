@@ -10,6 +10,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,6 +20,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -134,12 +137,21 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         //response.setHeader("RefreshToken", refreshToken);
 
         // HttpOnly 쿠키를 생성(보안 문제)
-        Cookie cookie = new Cookie("refreshToken", refreshToken);
-        cookie.setMaxAge((int)(jwtUtil.getRefreshExpiredMs()/1000)); //단위: 초
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
+//        Cookie cookie = new Cookie("refreshToken", refreshToken);
+//        cookie.setMaxAge((int)(jwtUtil.getRefreshExpiredMs()/1000)); //단위: 초
+//        cookie.setHttpOnly(true);
+//        cookie.setPath("/");
         //cookie.setSecure(true); //Https에서 사용한 쿠키값 암호화 옵션, 나중에 배포시 주석해제예정
-        response.addCookie(cookie);
+//        response.addCookie(cookie);
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true)              // ★ HTTPS 전용
+                .sameSite("None")          // ★ 프론트/백엔드 분리
+                .path("/")
+                .maxAge(Duration.ofMillis(jwtUtil.getRefreshExpiredMs()))
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
     }
 
     /**

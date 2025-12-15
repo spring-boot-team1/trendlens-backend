@@ -36,6 +36,25 @@ public class JWTFilter extends OncePerRequestFilter {
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        // ✅ [추가 1] Preflight 요청은 JWT 검사 없이 통과
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // ✅ [추가 2] JWT 검증 제외 경로들
+        String path = request.getRequestURI();
+        if (
+                path.equals("/trend/login") ||
+                        path.startsWith("/trend/api/v3/signup") ||
+                        path.startsWith("/trend/api/v1/reissue") ||
+                        path.startsWith("/trend/actuator")
+        ) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // 로그인 요청은 JWT 검증 대상이 아님
         if (request.getServletPath().equals("/login")) {
             filterChain.doFilter(request, response);

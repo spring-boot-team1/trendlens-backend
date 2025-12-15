@@ -10,6 +10,7 @@ import com.test.trend.domain.account.repository.AccountRepository;
 import com.test.trend.domain.account.service.util.ServiceUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -84,12 +85,11 @@ public class AccountService {
         // refreshtoken 쿠키삭제
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-//                .secure(true)
-//                .sameSite("None")
-                .sameSite("Lax")
+                .secure(true)
+                .sameSite("None")
                 .path("/")
                 .maxAge(0)
                 .build();
-        response.addHeader("Set-Cookie", cookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }
