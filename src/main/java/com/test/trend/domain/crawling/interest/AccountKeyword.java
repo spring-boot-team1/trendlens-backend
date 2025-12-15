@@ -2,6 +2,7 @@ package com.test.trend.domain.crawling.interest;
 
 import java.time.LocalDateTime;
 
+import com.test.trend.domain.account.entity.Account;
 import com.test.trend.domain.crawling.keyword.Keyword;
 import com.test.trend.enums.YesNo;
 
@@ -35,7 +36,10 @@ public class AccountKeyword {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqAcKeywordGenerator")
 	private Long seqAcKeyword;
-	private Long seqAccount;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seqAccount")
+	private Account seqAccount;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "seqKeyword")

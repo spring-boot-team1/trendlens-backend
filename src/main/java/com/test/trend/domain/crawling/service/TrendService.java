@@ -110,7 +110,7 @@ public class TrendService {
         List<TrendScore> scores =
                 trendScoreRepo.findDailyRank(
                         targetDate,
-                        PageRequest.of(0, 5)
+                        PageRequest.of(0, 10)
                 );
 
         log.info("[GuestTop5] daily rank size={}", scores.size());
@@ -133,13 +133,16 @@ public class TrendService {
             return Collections.emptyList();
         }
 
-
-        // 2. 날짜 로직
+        // 2. 조회 기준 날짜 설정
         LocalDate targetDate = trendScoreRepo.findLatestBaseDate();
-        if(targetDate == null) targetDate = LocalDate.now();
+        if(targetDate == null) return Collections.emptyList();
 
+        //3. 관심 키워드들의 점수 데이터 조회
         List<TrendScore> scores = trendScoreRepo.findByKeywordInAndBaseDate(myKeywords, targetDate);
-        // 3. DTO 변환 후 반환
+
+        scores.sort((o1, o2) -> Double.compare(o2.getFinalScore(), o1.getFinalScore()));
+
+        // 4. DTO 변환 후 반환
         return convertDto(scores);
     }
 

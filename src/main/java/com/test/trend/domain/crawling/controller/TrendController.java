@@ -1,12 +1,13 @@
 package com.test.trend.domain.crawling.controller;
 
-
+import com.test.trend.domain.account.dto.CustomAccountDetails;
 import com.test.trend.domain.crawling.insight.InsightResponseDto;
 import com.test.trend.domain.crawling.interest.TrendResponseDto;
 import com.test.trend.domain.crawling.service.TrendService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,10 +42,8 @@ public class TrendController {
     //3. [로그인] 내 관심 키워드 래킹 조회
     @Operation(summary = "[Member] 내 관심 키워드 순위", description = "로그인한 회원이 등록한 관심 키워드의 현재 순위를 보여줍니다.")
     @GetMapping("/rank/my")
-    public ResponseEntity<List<TrendResponseDto>> getMyRank() {
-        //Long seqAccount = account.getseqAccount();
-        //List<TrendResponseDto> myRanking = trendService.getAccountRanks(seqAccount);
-        //return ResponseEntity.ok(myRanking);
-        return ResponseEntity.ok(null);
+    public ResponseEntity<List<TrendResponseDto>> getMyRank(@AuthenticationPrincipal CustomAccountDetails principal) {
+        Long seqAccount = principal.getSeqAccount();
+        return ResponseEntity.ok(trendService.getAccountRanks(seqAccount));
     }
 }

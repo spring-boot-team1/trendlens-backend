@@ -21,4 +21,6 @@ public interface TrendScoreRepository extends JpaRepository<TrendScore, Long>{
     List<TrendScore> findDailyRank(@Param("date") LocalDate date, Pageable pageable);
 
     List<TrendScore> findByKeywordInAndBaseDate(List<Keyword> myKeywords, LocalDate now);
+
+    Optional<TrendScore> findFirstByKeywordOrderByBaseDateDesc(Keyword k);
 }
