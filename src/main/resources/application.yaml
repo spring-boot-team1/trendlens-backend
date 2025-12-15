@@ -87,6 +87,7 @@ springdoc:
     enabled: true
 
 custom:
+  isLocal: true
   s3:
     basePrefix: uploads
     prefix:
