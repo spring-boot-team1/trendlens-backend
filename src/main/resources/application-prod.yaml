@@ -2,7 +2,12 @@ spring:
   application:
     name: trend
 
-  # JPA 설정
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    url: jdbc:oracle:thin:@up2ibkzw6s7d1h75_high
+
   jpa:
     database: oracle
     hibernate:
@@ -16,24 +21,12 @@ spring:
         highlight_sql: true
         dialect: org.hibernate.dialect.OracleDialect
 
-  # JWT 설정 (환경변수로 받음)
-  jwt:
-    secret: ${JWT_SECRET}
-
-  datasource:
-    driver-class-name: oracle.jdbc.OracleDriver
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    url: ${DB_URL}
-
-  # Redis 설정
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
 
-  # AWS 설정
   cloud:
     aws:
       credentials:
@@ -43,6 +36,14 @@ spring:
         static: ${AWS_REGION}
       s3:
         bucket: ${AWS_BUCKET}
+
+  jwt:
+    secret: ${JWT_SECRET}
+
+server:
+  port: 8080
+  servlet:
+    context-path: /trend
 
 file:
   upload-dir: ${FILE_UPLOAD_DIR}
@@ -56,11 +57,6 @@ logging:
           jdbc:
             bind: trace
 
-server:
-  port: 8080
-  servlet:
-    context-path: /trend
-
 springdoc:
   api-docs:
     enabled: true
@@ -70,3 +66,51 @@ naver:
   client-secret: ${NAVER_CLIENT_SECRET}
   datalab-client-id: ${NAVER_DATALAB_CLIENT_ID}
   datalab-client-secret: ${NAVER_DATALAB_CLIENT_SECRET}
+
+toss:
+  secret-key: ${TOSS_SECRET_KEY}
+
+gemini:
+  api-key: ${GEMINI_API_KEY}
+  api-key-b: ${GEMINI_API_KEY_B}
+
+external:
+  sam3d:
+    base-url: ${SAM3D_BASE_URL}
+
+custom:
+  s3:
+    basePrefix: uploads
+    prefix:
+      bodyPhoto: body-photo
+      profilepic: profilepic
+    urlPrefix: https://trendlens.s3.ap-northeast-2.amazonaws.com
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+
+#CORS 설정
+cors:
+  allowed-origins:
+    - "https://trendslens.xyz"
+    - "https://www.trendslens.xyz"
+  allowed-methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+    - "PATCH"
+  allowed-headers:
+    - "*"
+  exposed-headers:
+    - "Authorization"
+  allow-credentials: true
