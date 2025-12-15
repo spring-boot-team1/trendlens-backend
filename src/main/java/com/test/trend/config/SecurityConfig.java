@@ -76,8 +76,8 @@ public class SecurityConfig {
 //                .anyRequest().permitAll());
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/login", "/trend/actuator/**").permitAll()
-                .requestMatchers("/auth-check", "/api/v1/logout").authenticated()
+                .requestMatchers("/trend/login", "/trend/actuator/**").permitAll()
+                .requestMatchers("/trend/auth-check", "/trend/api/v1/logout").authenticated()
                 .anyRequest().permitAll()
         );
         //JWTFilter 등록하기
