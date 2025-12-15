@@ -62,4 +62,17 @@ public class AccountController {
         return ResponseEntity.ok(Map.of("message", "logout success"));
     }
 
+    @GetMapping("/api/v1/mypage")
+    public ResponseEntity<?> myPage(Authentication authentication) {
+        CustomAccountDetails user = (CustomAccountDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(
+            Map.of(
+                "email", user.getEmail(),
+                    "username", user.getUsername(),
+                    "role", user.getRole(),
+                    "seqAccount", user.getSeqAccount()
+//                    "profilePic", user.getProfilePic(),
+            )
+        );
+    }
 }
