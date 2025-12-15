@@ -32,6 +32,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     //runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
@@ -49,15 +50,15 @@ dependencies {
     implementation 'com.oracle.database.security:osdt_core'
     implementation 'com.oracle.database.security:osdt_cert'
 
-	//jsoup
-	implementation 'org.jsoup:jsoup:1.21.2'
+    //jsoup
+    implementation 'org.jsoup:jsoup:1.21.2'
 
     //selenium
     implementation 'org.seleniumhq.selenium:selenium-java:4.38.0'
-	
+
     //Swagger 추가
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
-    
+
     //JWT 의존성 추가
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
     implementation 'io.jsonwebtoken:jjwt-impl:0.13.0'
@@ -74,6 +75,8 @@ dependencies {
 
     //geminiAI API
     implementation("com.google.genai:google-genai:1.0.0")
+    //iRSA 인증 필수
+    implementation 'software.amazon.awssdk:sts'
 
 }
 
