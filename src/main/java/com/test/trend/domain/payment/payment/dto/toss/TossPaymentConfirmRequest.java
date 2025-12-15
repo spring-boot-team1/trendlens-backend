@@ -16,6 +16,7 @@ public class TossPaymentConfirmRequest {
 	private String paymentKey;
     private String orderId;
     private Long amount;
+    private Long seqSubscriptionPlan;
     
     // 구독 갱신에 반드시 필요
     private Long seqAccount;

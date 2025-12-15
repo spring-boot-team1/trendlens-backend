@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
  * Toss Webhook 수신용 REST API 컨트롤러.
  */
 @RestController
-@RequestMapping("/trend/api/v1/payments/webhook")
+@RequestMapping("/api/v1/payments/webhook")
 @RequiredArgsConstructor
 @Tag(name = "Webhook", description = "Toss Webhook 수신 API")
 public class WebhookController {

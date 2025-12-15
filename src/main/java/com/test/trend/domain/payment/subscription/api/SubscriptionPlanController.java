@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
  * 구독 상품(SubscriptionPlan)에 대한 REST API 컨트롤러.
  */
 @RestController
-@RequestMapping("/trend/api/v1/subscription/plans")
+@RequestMapping("/api/v1/subscriptions/plans")
 @RequiredArgsConstructor
 @Tag(name = "SubscriptionPlan", description = "구독 상품 관리 API")
 public class SubscriptionPlanController {

@@ -1,6 +1,7 @@
 package com.test.trend.domain.payment.payment.dto;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import com.test.trend.enums.PaymentStatus;
 
@@ -22,6 +23,7 @@ public class PaymentDTO {
 	private Long seqPayment;
     private Long seqAccount;
     private Long seqUserSub;
+    private Long seqSubscriptionPlan;
     
     private String orderId;
     private String paymentKey;
@@ -33,7 +35,7 @@ public class PaymentDTO {
     private PaymentStatus paymentStatus;
 
     private LocalDateTime requestTime;
-    private LocalDateTime approveTime;
+    private OffsetDateTime approveTime;
     private LocalDateTime cancelTime;
 
     private String failReason;
@@ -46,4 +48,5 @@ public class PaymentDTO {
 
     // 구독 갱신 결과 (추가)
     private LocalDateTime nextBillingDate;
+
 }

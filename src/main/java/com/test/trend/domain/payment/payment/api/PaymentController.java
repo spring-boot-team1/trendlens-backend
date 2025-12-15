@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
  * 결제(Payment) 관련 REST API 컨트롤러.
  */
 @RestController
-@RequestMapping("/trend/api/v1/payments")
+@RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 @Tag(name = "Payment", description = "결제 처리 API")
 public class PaymentController {
@@ -33,17 +33,18 @@ public class PaymentController {
      * 결제 요청을 PENDING 상태로 기록한다.
      * (결제 버튼 클릭 시 내부적으로 호출 가능)
      */
+    //@Operation(summary = "결제 요청 기록", description = "결제 요청 정보를 PENDING 상태로 저장한다.")
     @PostMapping("/record")
-    @Operation(summary = "결제 요청 기록", description = "결제 요청 정보를 PENDING 상태로 저장한다.")
-    public ResponseEntity<PaymentDTO> record(@RequestBody PaymentDTO dto) {
-    	
-    	Payment payment = paymentService.recordPaymentRequest(
-	        dto.getSeqAccount(),
-	        dto.getOrderId(),
-	        dto.getAmount()
-	    );
+    public ResponseEntity<Void> record(@RequestBody PaymentDTO dto) {
 
-    	return ResponseEntity.ok(mapper.toDto(payment));
+        paymentService.recordPaymentRequest(
+            dto.getSeqAccount(),
+            dto.getOrderId(),
+            dto.getAmount(),
+            dto.getSeqSubscriptionPlan()
+        );
+
+        return ResponseEntity.ok().build();
     }
 
     /**

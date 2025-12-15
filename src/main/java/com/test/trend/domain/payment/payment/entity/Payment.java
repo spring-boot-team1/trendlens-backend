@@ -1,6 +1,7 @@
 package com.test.trend.domain.payment.payment.entity;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import com.test.trend.domain.payment.payment.dto.toss.TossPaymentConfirmResponse;
 import com.test.trend.enums.PaymentStatus;
@@ -32,6 +33,8 @@ public class Payment {
 	private Long seqAccount;
 	private Long seqUserSub;
 	
+	private Long seqSubscriptionPlan;
+	
 	// Toss Payments 관련 필드 추가
     private String paymentKey; // Toss 고유 결제 키
     private String orderId; // 주문 고유 아이디
@@ -43,7 +46,7 @@ public class Payment {
     private PaymentStatus paymentStatus; // DONE, FAILED, CANCELED, APPROVED 등
 	
 	private LocalDateTime requestTime;
-	private LocalDateTime approveTime;
+	private OffsetDateTime approveTime;
 	private LocalDateTime cancelTime;
 	
 	private String failReason;
@@ -64,6 +67,12 @@ public class Payment {
      * - status, 결제키, 결제수단, 승인시간, 요청시간, 금액 등을 동기화
      */
     public void applyTossConfirm(TossPaymentConfirmResponse toss) {
+    	
+    	 // 🔒 중복 승인 방지
+        if (this.paymentStatus == PaymentStatus.DONE) {
+            return; // 이미 처리된 결제는 무시
+        }
+    	
         // Toss 원문 값 저장
         this.paymentKey = toss.getPaymentKey();
         this.orderId = toss.getOrderId();
@@ -78,7 +87,6 @@ public class Payment {
         this.paymentStatus = PaymentStatus.fromTossStatus(toss.getStatus());
 
         // 시간 저장 (Toss DTO를 LocalDateTime으로 바꿨다는 가정)
-        this.requestTime = toss.getRequestedAt();
         this.approveTime = toss.getApprovedAt();
 
         // DONE이 아닌데 실패 사유가 필요하면 service에서 추가로 세팅
@@ -90,8 +98,7 @@ public class Payment {
     }
 
     /** 내부 승인(필요 시 유지) */
-    public void approve(String method, LocalDateTime time) {
-        this.paymentStatus = PaymentStatus.APPROVED; // ✅ 버그 수정
+    public void approve(String method, OffsetDateTime time) {
         this.paymentMethod = method;
         this.approveTime = time;
     }
@@ -102,6 +109,9 @@ public class Payment {
     }
 
     public void fail(String reason) {
+        if (this.paymentStatus == PaymentStatus.DONE) {
+            throw new IllegalStateException("이미 완료된 결제는 실패 처리할 수 없습니다.");
+        }
         this.paymentStatus = PaymentStatus.FAILED;
         this.failReason = reason;
     }
@@ -109,6 +119,10 @@ public class Payment {
     public void updateStatus(PaymentStatus status) {
         this.paymentStatus = status;
     }
+
+	public void setSeqSubscriptionPlan(Long seqSubscriptionPlan2) {
+		
+	}
 
 }
 

@@ -42,8 +42,9 @@ public class PaymentService {
     /**
      * 결제 요청을 PENDING 상태로 기록
      */
-    public Payment recordPaymentRequest(Long seqAccount, String orderId, Long amount) {
+    public Payment recordPaymentRequest(Long seqAccount, String orderId, Long amount, Long seqSubscriptionPlan) {
         Payment pending = Payment.createPending(seqAccount, orderId, amount);
+        pending.setSeqSubscriptionPlan(seqSubscriptionPlan);
         return repository.save(pending);
     }
 
@@ -53,8 +54,22 @@ public class PaymentService {
     public PaymentConfirmResponse confirmTossPaymentAndSubscribe(
             TossPaymentConfirmRequest request
     ) {
+    	
+    	try {
+            log.info("Confirm request: {}", request);
+
+            // 기존 로직
+        } catch (Exception e) {
+            log.error("결제 승인 처리 중 오류 발생", e);
+            throw e; // 그대로 500 던짐 (로그 확보용)
+        }
+    	
         // 1. Toss 결제 승인 호출
         TossPaymentConfirmResponse tossResponse = requestTossConfirm(request);
+        
+        if (!request.getAmount().equals(tossResponse.getTotalAmount())) {
+            throw new IllegalStateException("결제 금액 불일치");
+        }
 
         log.info("[TOSS CONFIRM RESPONSE] {}", tossResponse);
 

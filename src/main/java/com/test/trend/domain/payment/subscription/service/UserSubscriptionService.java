@@ -1,5 +1,7 @@
 package com.test.trend.domain.payment.subscription.service;
 
+import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +13,7 @@ import com.test.trend.domain.payment.subscription.entity.UserSubscription;
 import com.test.trend.domain.payment.subscription.mapper.UserSubscriptionMapper;
 import com.test.trend.domain.payment.subscription.repository.SubscriptionPlanRepository;
 import com.test.trend.domain.payment.subscription.repository.UserSubscriptionRepository;
+import com.test.trend.enums.SubscriptionStatus;
 
 import lombok.RequiredArgsConstructor;
 
@@ -114,16 +117,21 @@ public class UserSubscriptionService {
 
         Long seqAccount = payment.getSeqAccount();
 
-        // ACTIVE 구독 조회 (없으면 새로 생성)
+        // 1️⃣ ACTIVE 구독 조회 (없으면 생성)
         UserSubscription subscription =
-        		userRepository.findActiveBySeqAccount(seqAccount)
-                    .orElseGet(() -> createNewSubscription(seqAccount));
+            userRepository.findActiveBySeqAccount(seqAccount)
+                .orElseGet(() -> createNewSubscription(seqAccount));
 
-        // 현재 구독에 연결된 플랜 기준으로 기간 연장
+        // 2️⃣ subscription 안에는 반드시 plan 이 있다
         SubscriptionPlan plan = subscription.getSeqSubscriptionPlan();
-        int months = plan.getDurationMonth();
-        subscription.extendBillingDate(months);
-        
+
+        if (plan == null) {
+            throw new IllegalStateException("구독에 연결된 플랜이 없습니다.");
+        }
+
+        // 3️⃣ 플랜 기간만큼 연장
+        subscription.extendBillingDate(plan.getDurationMonth());
+
         return subscription;
     }
 
@@ -135,12 +143,19 @@ public class UserSubscriptionService {
      */
     private UserSubscription createNewSubscription(Long seqAccount) {
 
-        // TODO: 실제 구현 시 "기본 플랜" 전략 필요 (지금은 1L 고정)
-        SubscriptionPlan defaultPlan = planRepository.findById(1L)
-                .orElseThrow(() -> new IllegalStateException("기본 구독 플랜이 존재하지 않습니다."));
+        SubscriptionPlan defaultPlan = planRepository
+            .findById(1L)
+            .orElseThrow(() -> new IllegalStateException("기본 플랜 없음"));
 
-        UserSubscription sub = UserSubscription.create(seqAccount, defaultPlan);
-        return userRepository.save(sub);
+        return userRepository.save(
+            UserSubscription.builder()
+                .seqAccount(seqAccount)
+                .seqSubscriptionPlan(defaultPlan)
+                .startDate(LocalDateTime.now())
+                .endDate(LocalDateTime.now().plusMonths(defaultPlan.getDurationMonth()))
+                .status(SubscriptionStatus.ACTIVE)
+                .build()
+        );
     }
 
     /**
