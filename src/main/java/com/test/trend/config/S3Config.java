@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.parameters.P;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -21,6 +22,9 @@ public class S3Config {
     @Value("${spring.cloud.aws.credentials.secret-key}")
     private String secretKey;
 
+    @Value("${custom.isLocal}")
+    private Boolean isLocal;
+
 
     /**
      * S3에 접근하는 객체 생성
@@ -28,9 +32,17 @@ public class S3Config {
      */
     @Bean
     public S3Client s3Client() {
-        return S3Client.builder()
-                .region(Region.AP_NORTHEAST_2)
-                .build();
+        if (isLocal) {
+            return S3Client.builder()
+                    .region(Region.AP_NORTHEAST_2)
+                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
+                    .build();
+        } else {
+            return S3Client.builder()
+                    .region(Region.AP_NORTHEAST_2)
+                    .build();
+        }
+
     }
 
     /**
@@ -39,8 +51,15 @@ public class S3Config {
      */
     @Bean
     public S3Presigner s3Presigner(){
-        return S3Presigner.builder()
-                .region(Region.AP_NORTHEAST_2)
-                .build();
+        if (isLocal) {
+            return S3Presigner.builder()
+                    .region(Region.AP_NORTHEAST_2)
+                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
+                    .build();
+        } else {
+            return S3Presigner.builder()
+                    .region(Region.AP_NORTHEAST_2)
+                    .build();
+        }
     }
 }
