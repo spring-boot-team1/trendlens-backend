@@ -30,11 +30,12 @@ public class UserSubscriptionController {
     
     @GetMapping("/status")
     public ResponseEntity<UserSubscriptionStatusResponse> status(
-            @RequestParam Long seqAccount
+            @RequestParam(required = false) Long seqAccount
     ) {
-        return ResponseEntity.ok(
-        		service.getSubscriptionStatus(seqAccount)
-        );
+        UserSubscriptionStatusResponse result =
+            service.getSubscriptionStatus(seqAccount);
+
+        return ResponseEntity.ok(result); // null이어도 200
     }
 
     /**
