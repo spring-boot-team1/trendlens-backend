@@ -37,22 +37,17 @@ public class UserSubscriptionService {
     @Transactional(readOnly = true)
     public UserSubscriptionStatusResponse getSubscriptionStatus(Long seqAccount) {
 
-        if (seqAccount == null || seqAccount <= 0) {
-            return null;
-        }
+        UserSubscription sub = userRepository.findActiveBySeqAccount(seqAccount)
+            .orElseThrow(() -> new IllegalStateException("활성 구독이 없습니다."));
 
-        return userRepository.findActiveBySeqAccount(seqAccount)
-            .map(sub -> {
-                SubscriptionPlan plan = sub.getSeqSubscriptionPlan();
+        SubscriptionPlan plan = sub.getSeqSubscriptionPlan();
 
-                return UserSubscriptionStatusResponse.builder()
-                    .planName(plan.getPlanName())
-                    .status(sub.getStatus().name())
-                    .startDate(sub.getStartDate())
-                    .nextBillingDate(sub.getNextBillingDate())
-                    .build();
-            })
-            .orElse(null);   // 🔥 여기 핵심
+        return UserSubscriptionStatusResponse.builder()
+            .planName(plan.getPlanName())
+            .status(sub.getStatus().name())
+            .startDate(sub.getStartDate())
+            .nextBillingDate(sub.getNextBillingDate())
+            .build();
     }
 
     /**
