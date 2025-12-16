@@ -123,6 +123,8 @@ naver:
 
 toss:
   secret-key: ${toss.secret-key}
+  webhook:
+    secret: ${toss.secret-key}
 
 gemini:
   api-key: ${gemini.api-key}
