@@ -40,7 +40,7 @@ class SubscriptionPlanServiceTest {
                 .planDescription("프로 플랜")
                 .monthlyFee(20000L)
                 .durationMonth(1)
-                .status("ACTIVE")
+                .status(SubscriptionStatus.ACTIVE)
                 .build();
 
         SubscriptionPlan entity = SubscriptionPlan.builder()

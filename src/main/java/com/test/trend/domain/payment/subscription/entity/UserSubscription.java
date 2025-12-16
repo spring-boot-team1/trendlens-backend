@@ -2,9 +2,12 @@ package com.test.trend.domain.payment.subscription.entity;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.test.trend.enums.SubscriptionStatus;
 import com.test.trend.enums.YesNo;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -45,12 +48,16 @@ public class UserSubscription {
 	private LocalDateTime nextBillingDate;
 	
 	@Enumerated(EnumType.STRING)
-	private YesNo autoRenewYn;	// Y/N
+	@Column(nullable = false)
+	@Builder.Default
+	private YesNo autoRenewYn = YesNo.N;;	// Y/N
 	
 	@Enumerated(EnumType.STRING)
 	private SubscriptionStatus status;	// ACTIVE/CANCELED/EXPIRED
 	
 	private String cancelReason;
+	@CreationTimestamp
+	@Column(nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 	
 	/** 구독 생성 팩토리 메서드 */

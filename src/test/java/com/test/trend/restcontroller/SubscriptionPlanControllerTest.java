@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.test.trend.domain.payment.subscription.api.SubscriptionPlanController;
 import com.test.trend.domain.payment.subscription.dto.SubscriptionPlanDTO;
 import com.test.trend.domain.payment.subscription.service.SubscriptionPlanService;
+import com.test.trend.enums.SubscriptionStatus;
 
 @WebMvcTest(SubscriptionPlanController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -37,7 +38,7 @@ class SubscriptionPlanControllerTest {
                 .planDescription("테스트")
                 .monthlyFee(10000L)
                 .durationMonth(1)
-                .status("ACTIVE")
+                .status(SubscriptionStatus.ACTIVE)
                 .build();
 
         mockMvc.perform(post("/trend/api/v1/subscription/plans")
