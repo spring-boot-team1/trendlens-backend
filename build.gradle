@@ -29,8 +29,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     //runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
@@ -47,6 +49,35 @@ dependencies {
     implementation 'com.oracle.database.security:oraclepki'
     implementation 'com.oracle.database.security:osdt_core'
     implementation 'com.oracle.database.security:osdt_cert'
+
+    //jsoup
+    implementation 'org.jsoup:jsoup:1.21.2'
+
+    //selenium
+    implementation 'org.seleniumhq.selenium:selenium-java:4.38.0'
+
+    //Swagger 추가
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+    //JWT 의존성 추가
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+
+    //WebClient 관련 의존성
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    //aws s3 관련 의존성
+    // Spring Cloud AWS BOM (버전은 변수로 빼도 되고, 그냥 박아도 됨)
+    implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.4.2")
+    // S3 연동용 스타터
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+
+    //geminiAI API
+    implementation("com.google.genai:google-genai:1.0.0")
+    //iRSA 인증 필수
+    implementation 'software.amazon.awssdk:sts'
+
 }
 
 tasks.named('test') {
