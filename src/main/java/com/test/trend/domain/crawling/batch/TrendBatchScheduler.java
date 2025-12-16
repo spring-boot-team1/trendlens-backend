@@ -14,8 +14,8 @@ public class TrendBatchScheduler {
     private final FinalTrendPipelineService finalTrendPipelineService;
     private final BatchLoggingService loggingService;
 
-    @Scheduled(cron = "0 0 3 * * *")
-    //@Scheduled(initialDelay = 5000, fixedDelay = 99999999)
+    //@Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
+    @Scheduled(initialDelay = 5000, fixedDelay = 99999999)
     public void scheduleDailyTrendAnalysis() {
         log.info("⏰ [Scheduler] 새벽 3시 정기 트렌드 분석 시작");
 
@@ -23,17 +23,18 @@ public class TrendBatchScheduler {
         Long seqBatchJob = job.getSeqBatchJob();
 
         try {
-            // 2. 파이프라인 실행
+            // 파이프라인 실행
             finalTrendPipelineService.executeFullPipeline();
 
-            //3. 성공 기록
-            loggingService.finialJob(seqBatchJob);
-            loggingService.saveStepLog(seqBatchJob, "FULL_PIPELINE", "SUCCESS", "ALL steps completed successfully");
+            // 성공 기록
+            loggingService.finishJob(seqBatchJob);
+            loggingService.saveStepLog(seqBatchJob, "FULL_PIPELINE", "COMPLETED", null);
 
             log.info("⏰ [Scheduler] 정기 분석 정상 종료 (Job ID: {})", seqBatchJob);
+
         } catch (Exception e) {
-            // 4. 실패 기록
-            loggingService.failjob(seqBatchJob, e.getMessage());
+            // 실패 기록
+            loggingService.failJob(seqBatchJob, e.getMessage());
             loggingService.saveStepLog(seqBatchJob, "FULL_PIPELINE", "FAILED", e.getMessage());
 
             log.error("⏰ [Scheduler] 정기 분석 중 오류 발생! (Job ID: {})", seqBatchJob, e);
