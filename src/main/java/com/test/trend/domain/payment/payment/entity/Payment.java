@@ -120,7 +120,7 @@ public class Payment {
         this.paymentStatus = status;
     }
 
-	public void setSeqSubscriptionPlan(Long seqSubscriptionPlan2) {
+	public void setSeqSubscriptionPlan(Long seqSubscriptionPlan) {
 		
 	}
 

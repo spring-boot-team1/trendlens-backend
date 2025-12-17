@@ -10,28 +10,30 @@ public class SubscriptionPlanMapperImpl implements SubscriptionPlanMapper {
 
     @Override
     public SubscriptionPlanDTO toDto(SubscriptionPlan entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
         return SubscriptionPlanDTO.builder()
                 .seqSubscriptionPlan(entity.getSeqSubscriptionPlan())
-
                 .planName(entity.getPlanName())
                 .planDescription(entity.getPlanDescription())
-
                 .monthlyFee(entity.getMonthlyFee())
                 .durationMonth(entity.getDurationMonth())
                 .status(entity.getStatus())
-
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
     }
 
-	@Override
-	public SubscriptionPlan toEntity(SubscriptionPlanDTO dto) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public SubscriptionPlan toEntity(SubscriptionPlanDTO dto) {
+        if (dto == null) return null;
+
+        return SubscriptionPlan.builder()
+                .planName(dto.getPlanName())
+                .planDescription(dto.getPlanDescription())
+                .monthlyFee(dto.getMonthlyFee())
+                .durationMonth(dto.getDurationMonth())
+                .status(dto.getStatus())
+                .build();
+    }
 }

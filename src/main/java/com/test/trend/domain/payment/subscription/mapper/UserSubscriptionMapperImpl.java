@@ -11,9 +11,7 @@ public class UserSubscriptionMapperImpl implements UserSubscriptionMapper {
 
     @Override
     public UserSubscriptionDTO toDto(UserSubscription entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
         SubscriptionPlan plan = entity.getSeqSubscriptionPlan();
 
@@ -21,7 +19,7 @@ public class UserSubscriptionMapperImpl implements UserSubscriptionMapper {
                 .seqUserSub(entity.getSeqUserSub())
                 .seqAccount(entity.getSeqAccount())
 
-                // 🔗 연관 엔티티 안전 처리
+                // 연관 엔티티 안전 처리
                 .seqSubscriptionPlan(
                         plan != null ? plan.getSeqSubscriptionPlan() : null
                 )
@@ -39,11 +37,8 @@ public class UserSubscriptionMapperImpl implements UserSubscriptionMapper {
 
     @Override
     public UserSubscription toEntity(UserSubscriptionDTO dto) {
-        if (dto == null) {
-            return null;
-        }
+        if (dto == null) return null;
 
-        // ⚠️ 연관관계(subscriptionPlan)는 Service에서 주입하는 게 정석
         return UserSubscription.builder()
                 .seqAccount(dto.getSeqAccount())
                 .status(dto.getStatus())
@@ -53,4 +48,3 @@ public class UserSubscriptionMapperImpl implements UserSubscriptionMapper {
                 .build();
     }
 }
-
