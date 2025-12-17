@@ -14,8 +14,7 @@ public class TrendBatchScheduler {
     private final FinalTrendPipelineService finalTrendPipelineService;
     private final BatchLoggingService loggingService;
 
-    //@Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
-    @Scheduled(initialDelay = 5000, fixedDelay = 99999999)
+    @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     public void scheduleDailyTrendAnalysis() {
         log.info("⏰ [Scheduler] 새벽 3시 정기 트렌드 분석 시작");
 

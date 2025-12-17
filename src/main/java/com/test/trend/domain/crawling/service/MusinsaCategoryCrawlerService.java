@@ -200,7 +200,7 @@ public class MusinsaCategoryCrawlerService {
                 System.out.println(" >>> [Detail] breadcrumb 대기 타임아웃, 일단 진행");
             }
 
-            // ★ 핵심: Selenium이 렌더링한 소스를 String으로 가져옴
+            //Selenium이 렌더링한 소스를 String으로 가져옴
             String html = driver.getPageSource();
             Document doc = Jsoup.parse(html);
 
