@@ -10,9 +10,7 @@ public class PaymentMapperImpl implements PaymentMapper {
 
     @Override
     public PaymentDTO toDto(Payment entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
         return PaymentDTO.builder()
                 .seqPayment(entity.getSeqPayment())
@@ -28,10 +26,18 @@ public class PaymentMapperImpl implements PaymentMapper {
                 .build();
     }
 
-	@Override
-	public Payment toEntity(PaymentDTO dto) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-}
+    @Override
+    public Payment toEntity(PaymentDTO dto) {
+        if (dto == null) return null;
 
+        return Payment.builder()
+                .seqAccount(dto.getSeqAccount())
+                .orderId(dto.getOrderId())
+                .paymentKey(dto.getPaymentKey())
+                .amount(dto.getAmount())
+                .paymentMethod(dto.getPaymentMethod())
+                .paymentStatus(dto.getPaymentStatus())
+                .requestTime(dto.getRequestTime())
+                .build();
+    }
+}
