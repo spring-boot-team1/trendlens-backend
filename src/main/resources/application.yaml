@@ -3,8 +3,8 @@ spring:
     name: trend
 
   # include할 파일 명시
-#  config:
-#    import: "classpath:secret.yaml"
+ config:
+   import: "classpath:secret.yaml"
 
   #HikariCP Pool 개수 조절
   datasource:
