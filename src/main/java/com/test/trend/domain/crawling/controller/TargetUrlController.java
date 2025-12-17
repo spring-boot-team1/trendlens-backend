@@ -2,6 +2,7 @@ package com.test.trend.domain.crawling.controller;
 
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,13 +13,13 @@ import com.test.trend.domain.crawling.targeturl.TargetUrlService;
 
 import lombok.RequiredArgsConstructor;
 
+@Hidden
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/target-url")
 public class TargetUrlController {
 	
 	private final TargetUrlService targetUrlService;
-	
 	@PostMapping("/collect/{seqKeyword}")
 	public Map<String, Object> collect(@PathVariable("seqKeyword") Long seqKeyword) {
 		

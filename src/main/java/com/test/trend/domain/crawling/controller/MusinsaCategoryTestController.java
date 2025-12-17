@@ -2,6 +2,7 @@ package com.test.trend.domain.crawling.controller;
 
 import com.test.trend.domain.crawling.keyword.RisingKeywordDto;
 import com.test.trend.domain.crawling.service.MusinsaCategoryCrawlerService;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Hidden
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/test/crawling")

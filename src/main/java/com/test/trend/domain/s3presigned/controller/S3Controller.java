@@ -5,12 +5,14 @@ import com.test.trend.domain.account.service.AccountService;
 import com.test.trend.domain.s3presigned.dto.FileRequest;
 import com.test.trend.domain.s3presigned.dto.PresignedURLResponse;
 import com.test.trend.domain.s3presigned.service.S3Service;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Tag(name = "S3 Presigned URL", description = "AWS S3 Presigned URL 관련")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")

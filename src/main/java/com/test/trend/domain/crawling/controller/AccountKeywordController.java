@@ -2,12 +2,14 @@ package com.test.trend.domain.crawling.controller;
 
 import com.test.trend.domain.crawling.interest.AccountKeywordService;
 import com.test.trend.domain.crawling.interest.TrendResponseDto;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Interest Keyword", description = "관심 키워드 토글")
 @RestController
 @RequestMapping("/api/v1/interests")
 @RequiredArgsConstructor

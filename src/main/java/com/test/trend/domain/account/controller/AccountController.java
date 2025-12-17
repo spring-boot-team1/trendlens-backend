@@ -7,6 +7,7 @@ import com.test.trend.domain.account.dto.RegisterRequestDTO;
 import com.test.trend.domain.account.service.AccountService;
 import com.test.trend.domain.account.service.AuthService;
 import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 import java.util.Set;
 
+@Tag(name = "Account", description = "회원가입, 로그아웃, 마이페이지, 토큰 재발급")
 @RestController
 @RequiredArgsConstructor
 public class AccountController {

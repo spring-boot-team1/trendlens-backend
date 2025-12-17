@@ -15,6 +15,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 
 //테스트용 rest controller
+@Hidden
 @RestController
 @RequiredArgsConstructor
 public class TestController {

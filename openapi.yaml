@@ -1,0 +1,797 @@
+openapi: 3.0.1
+info:
+  title: TrendLens API 문서
+  description: TrendLens 프로젝트 API 명세서입니다.
+  version: 1.0.0
+servers:
+- url: http://localhost:8080/trend
+  description: Generated server url
+tags:
+- name: Account
+  description: "회원가입, 로그아웃, 마이페이지, 토큰 재발급"
+- name: S3 Presigned URL
+  description: AWS S3 Presigned URL 관련
+- name: Trend API
+  description: 트렌드 분석 데이터 조회
+- name: UserSubscription
+  description: 사용자 구독 관리 API
+- name: Body Analyze
+  description: SAM3D 기반 체형 분석 + 패션 추천 API
+- name: Admin Pipeline
+  description: 데이터 파이프라인 수동 실행 (관리자용)
+- name: Webhook
+  description: Toss Webhook 수신 API
+- name: SubscriptionPlan
+  description: 구독 상품 관리 API
+- name: Payment
+  description: 결제 처리 API
+- name: Interest Keyword
+  description: 관심 키워드 토글
+paths:
+  /api/v3/signup:
+    post:
+      tags:
+      - Account
+      operationId: signup3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequestDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/subscriptions:
+    post:
+      tags:
+      - UserSubscription
+      summary: 구독 시작
+      description: 사용자의 신규 구독을 생성한다.
+      operationId: start
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSubscriptionDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDTO"
+  /api/v1/subscriptions/{seqUserSub}/cancel:
+    post:
+      tags:
+      - UserSubscription
+      summary: 구독 취소
+      description: 사용자 구독을 취소 처리한다.
+      operationId: cancel
+      parameters:
+      - name: seqUserSub
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: reason
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDTO"
+  /api/v1/subscriptions/plans:
+    get:
+      tags:
+      - SubscriptionPlan
+      summary: 구독 상품 전체 조회
+      description: 등록된 모든 구독 상품 목록을 조회한다.
+      operationId: findAll
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriptionPlanDTO"
+    post:
+      tags:
+      - SubscriptionPlan
+      summary: 구독 상품 생성
+      description: 새로운 구독 상품을 생성한다.
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionPlanDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SubscriptionPlanDTO"
+  /api/v1/reissue:
+    post:
+      tags:
+      - Account
+      operationId: reissue
+      parameters:
+      - name: refreshToken
+        in: cookie
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/presigned/{category}:
+    post:
+      tags:
+      - S3 Presigned URL
+      operationId: getPresignedPutUrl
+      parameters:
+      - name: category
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FileRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PresignedURLResponse"
+  /api/v1/payments/webhook:
+    post:
+      tags:
+      - Webhook
+      summary: Toss Webhook 처리
+      description: Toss에서 전송하는 Webhook 이벤트를 수신하여 처리한다.
+      operationId: handleWebhook
+      parameters:
+      - name: Toss-Signature
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          description: OK
+  /api/v1/payments/record:
+    post:
+      tags:
+      - Payment
+      operationId: record
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+  /api/v1/payments/confirm:
+    post:
+      tags:
+      - Payment
+      summary: Toss 결제 승인 처리
+      description: Toss Payments 결제 승인 후 결제 상태를 저장하고 구독을 생성/갱신한다.
+      operationId: confirm
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TossPaymentConfirmRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PaymentConfirmResponse"
+  /api/v1/logout:
+    post:
+      tags:
+      - Account
+      operationId: logout
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/interests/toggle:
+    post:
+      tags:
+      - Interest Keyword
+      operationId: toggleInterest
+      parameters:
+      - name: seqAccount
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: seqKeyword
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+  /api/v1/analyze/body:
+    post:
+      tags:
+      - Body Analyze
+      summary: 체형 분석 및 패션 추천
+      description: |
+        사용자가 업로드한 **전신 사진**과 키/몸무게/성별/계정 PK를 받아서,
+        1) 이미지를 S3에 저장하고
+        2) FastAPI(SAM 3D Body)로 체형 분석을 수행한 뒤
+        3) Gemini에게 패션 추천을 요청하여
+        최종적으로 **체형 메트릭스 + AI 패션 추천 결과**를 모두 반환합니다.
+      operationId: analyzeBody
+      parameters:
+      - name: heightCm
+        in: query
+        required: true
+        schema:
+          type: number
+      - name: weightKg
+        in: query
+        required: true
+        schema:
+          type: number
+      - name: gender
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: seqAccount
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - imageFile
+              type: object
+              properties:
+                imageFile:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/BodyAnalysisWithMetricsDTO"
+  /api/admin/pipeline/run:
+    post:
+      tags:
+      - Admin Pipeline
+      summary: 전체 파이프라인 즉시 실행
+      description: 크롤링 -> 분석 -> 점수 -> AI생성 전 과정을 순차적으로 실행합니다.
+      operationId: runFullPipeline
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+  /api/v1/subscriptions/plans/{seqSubscriptionPlan}/status:
+    patch:
+      tags:
+      - SubscriptionPlan
+      summary: 구독 상품 상태 변경
+      description: 구독 상품의 상태(status)를 변경한다.
+      operationId: updateStatus
+      parameters:
+      - name: seqSubscriptionPlan
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: status
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SubscriptionPlanDTO"
+  /api/v1/user/profile-image:
+    get:
+      tags:
+      - S3 Presigned URL
+      operationId: getMyProfileImage
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+  /api/v1/subscriptions/{seqUserSub}:
+    get:
+      tags:
+      - UserSubscription
+      summary: 구독 단건 조회
+      description: PK 기준으로 사용자 구독 정보를 조회한다.
+      operationId: findById
+      parameters:
+      - name: seqUserSub
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionDTO"
+  /api/v1/subscriptions/status:
+    get:
+      tags:
+      - UserSubscription
+      operationId: status
+      parameters:
+      - name: seqAccount
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserSubscriptionStatusResponse"
+  /api/v1/subscriptions/plans/{seqSubscriptionPlan}:
+    get:
+      tags:
+      - SubscriptionPlan
+      summary: 구독 상품 단건 조회
+      description: PK 기준으로 단일 구독 상품을 조회한다.
+      operationId: findById_1
+      parameters:
+      - name: seqSubscriptionPlan
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SubscriptionPlanDTO"
+  /api/v1/mypage:
+    get:
+      tags:
+      - Account
+      operationId: myPage
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/v1/interests/my:
+    get:
+      tags:
+      - Interest Keyword
+      operationId: getMyInterests
+      parameters:
+      - name: seqAccount
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrendResponseDto"
+  /api/trends/rank/my:
+    get:
+      tags:
+      - Trend API
+      summary: "[Member] 내 관심 키워드 순위"
+      description: 로그인한 회원이 등록한 관심 키워드의 현재 순위를 보여줍니다.
+      operationId: getMyRank
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrendResponseDto"
+  /api/trends/rank/guest:
+    get:
+      tags:
+      - Trend API
+      summary: "[Guest] 실시간 Top 5 조회"
+      description: 로그인하지 않은 사용자를 위한 전체 Top 5 키워드
+      operationId: getGuest
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrendResponseDto"
+  /api/trends/insight:
+    get:
+      tags:
+      - Trend API
+      summary: 키워드 AI 주간 분석 조회
+      description: 검색어와 유사한 키워드의 이번 주 트렌드 요약/팁을 반환합니다.
+      operationId: getWeeklyInsight
+      parameters:
+      - name: keyword
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InsightResponseDto"
+components:
+  schemas:
+    RegisterRequestDTO:
+      required:
+      - email
+      - password
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        username:
+          type: string
+        nickname:
+          type: string
+        phonenum:
+          type: string
+        birthday:
+          type: string
+        profilepic:
+          type: string
+    UserSubscriptionDTO:
+      type: object
+      properties:
+        seqUserSub:
+          type: integer
+          format: int64
+        seqAccount:
+          type: integer
+          format: int64
+        seqSubscriptionPlan:
+          type: integer
+          format: int64
+        planName:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        nextBillingDate:
+          type: string
+          format: date-time
+        autoRenewYn:
+          type: string
+          enum:
+          - "Y"
+          - "N"
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - CANCELED
+          - EXPIRED
+        cancelReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    SubscriptionPlanDTO:
+      type: object
+      properties:
+        seqSubscriptionPlan:
+          type: integer
+          format: int64
+        planName:
+          type: string
+        planDescription:
+          type: string
+        monthlyFee:
+          type: integer
+          format: int64
+        durationMonth:
+          type: integer
+          format: int32
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - CANCELED
+          - EXPIRED
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    FileRequest:
+      type: object
+      properties:
+        ext:
+          type: string
+        contentType:
+          type: string
+    PresignedURLResponse:
+      type: object
+      properties:
+        presignedURL:
+          type: string
+        fileURL:
+          type: string
+    PaymentDTO:
+      type: object
+      properties:
+        seqPayment:
+          type: integer
+          format: int64
+        seqAccount:
+          type: integer
+          format: int64
+        seqUserSub:
+          type: integer
+          format: int64
+        seqSubscriptionPlan:
+          type: integer
+          format: int64
+        orderId:
+          type: string
+        paymentKey:
+          type: string
+        amount:
+          type: integer
+          format: int64
+        paymentMethod:
+          type: string
+        paymentStatus:
+          type: string
+          enum:
+          - REQUESTED
+          - PENDING
+          - APPROVED
+          - DONE
+          - FAILED
+          - CANCELED
+          - EXPIRED
+          - PARTIAL_CANCELED
+        requestTime:
+          type: string
+          format: date-time
+        approveTime:
+          type: string
+          format: date-time
+        cancelTime:
+          type: string
+          format: date-time
+        failReason:
+          type: string
+        receiptUrl:
+          type: string
+        cardApproveNo:
+          type: string
+        nextBillingDate:
+          type: string
+          format: date-time
+    TossPaymentConfirmRequest:
+      type: object
+      properties:
+        paymentKey:
+          type: string
+        orderId:
+          type: string
+        amount:
+          type: integer
+          format: int64
+        seqSubscriptionPlan:
+          type: integer
+          format: int64
+        seqAccount:
+          type: integer
+          format: int64
+    PaymentConfirmResponse:
+      type: object
+      properties:
+        orderId:
+          type: string
+        amount:
+          type: integer
+          format: int64
+        status:
+          type: string
+        nextBillingDate:
+          type: string
+          format: date-time
+    BodyAnalysisWithMetricsDTO:
+      type: object
+      properties:
+        seqAccount:
+          type: integer
+          format: int64
+        imageUrl:
+          type: string
+        meshUrl:
+          type: string
+        heightCm:
+          type: number
+        weightKg:
+          type: number
+        gender:
+          type: string
+        bmi:
+          type: number
+        shoulderWidthCm:
+          type: number
+        armLengthCm:
+          type: number
+        legLengthCm:
+          type: number
+        torsoLengthCm:
+          type: number
+        seqBodyAnalysis:
+          type: integer
+          format: int64
+        seqBodyMetrics:
+          type: integer
+          format: int64
+        promptUsed:
+          type: string
+        aiResult:
+          type: string
+    UserSubscriptionStatusResponse:
+      type: object
+      properties:
+        planName:
+          type: string
+        status:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        nextBillingDate:
+          type: string
+          format: date-time
+    TrendResponseDto:
+      type: object
+      properties:
+        seqKeyword:
+          type: integer
+          format: int64
+        keyword:
+          type: string
+        category:
+          type: string
+        trendDate:
+          type: string
+        aiSummary:
+          type: string
+        aiStylingTip:
+          type: string
+        imgUrl:
+          type: string
+        trendScore:
+          type: integer
+          format: int32
+        prevScore:
+          type: integer
+          format: int64
+        growthRate:
+          type: number
+          format: double
+        status:
+          type: string
+    InsightResponseDto:
+      type: object
+      properties:
+        seqKeyword:
+          type: integer
+          format: int64
+        keyword:
+          type: string
+        category:
+          type: string
+        imgUrl:
+          type: string
+        summary:
+          type: string
+        stylingTip:
+          type: string
+        hasInsight:
+          type: boolean

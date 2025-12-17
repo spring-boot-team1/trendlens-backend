@@ -3,11 +3,13 @@ package com.test.trend.domain.crawling.controller;
 import com.test.trend.domain.crawling.insight.WeeklyInsightService;
 import com.test.trend.domain.crawling.keyword.Keyword;
 import com.test.trend.domain.crawling.keyword.KeywordRepository;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Hidden
 @RestController
 @RequiredArgsConstructor
 public class TestInsightController {
