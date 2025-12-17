@@ -47,19 +47,20 @@ public class JWTFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         if (
                 path.equals("/trend/login") ||
-                        path.startsWith("/trend/api/v3/signup") ||
-                        path.startsWith("/trend/api/v1/reissue") ||
-                        path.startsWith("/trend/actuator")
+                path.startsWith("/trend/api/v3/signup") ||
+                path.startsWith("/trend/api/v1/reissue") ||
+                path.startsWith("/trend/actuator") ||
+                path.startsWith("/api/v1/payments")
         ) {
             filterChain.doFilter(request, response);
             return;
         }
 
         // 로그인 요청은 JWT 검증 대상이 아님
-        if (request.getServletPath().equals("/login")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        // if (request.getServletPath().equals("/login")) {
+        //     filterChain.doFilter(request, response);
+        //     return;
+        // }
 
         //토큰 유무 체크 + 접두어(Bearer) 유무 체크
         String authorization = request.getHeader("Authorization");
